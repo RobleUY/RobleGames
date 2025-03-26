@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snake Futurista</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="game-title">
+            <h1>Snake <span>Futurista</span></h1>
+        </div>
+
+        <div class="mode-selection">
+            <h2>Selecciona el modo de juego</h2>
+            <div class="mode-buttons">
+                <button id="easy-mode" class="mode-btn active">Fácil</button>
+                <button id="medium-mode" class="mode-btn">Medio</button>
+                <button id="hard-mode" class="mode-btn">Difícil</button>
+            </div>
+        </div>
+
+        <div class="game-info">
+            <div class="score-container">
+                <div class="score-label">Puntuación</div>
+                <div id="score">0</div>
+            </div>
+            <div class="high-score-container">
+                <div class="score-label">Récord</div>
+                <div id="high-score">0</div>
+            </div>
+        </div>
+
+        <div class="game-board">
+            <canvas id="snake-canvas"></canvas>
+        </div>
+
+        <div class="game-status">
+            <div id="status-message">Presiona cualquier flecha para comenzar</div>
+        </div>
+
+        <div class="game-controls">
+            <button id="restart-btn">Reiniciar Juego</button>
+            <button id="menu-btn">Volver al Menú</button>
+        </div>
+
+        <div class="mobile-controls">
+            <button id="up-btn"><i class="fas fa-arrow-up"></i></button>
+            <div class="horizontal-controls">
+                <button id="left-btn"><i class="fas fa-arrow-left"></i></button>
+                <button id="right-btn"><i class="fas fa-arrow-right"></i></button>
+            </div>
+            <button id="down-btn"><i class="fas fa-arrow-down"></i></button>
+        </div>
+
+        <div class="game-over-modal">
+            <div class="modal-content">
+                <h2 id="game-over-message">¡Juego Terminado!</h2>
+                <div class="final-score">
+                    <span>Puntuación Final:</span>
+                    <span id="final-score">0</span>
+                </div>
+                <div class="win-animation">
+                    <div class="firework"></div>
+                    <div class="firework"></div>
+                    <div class="firework"></div>
+                </div>
+                <button id="play-again-btn">Jugar de Nuevo</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="particles-container">
+        <div class="particles"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

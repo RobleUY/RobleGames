@@ -1,1 +1,121 @@
-ROBLEGAMES
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RobleGames - Juegos Divertidos</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- SVG Icons para plataformas -->
+    <div style="display: none;">
+        <!-- Incluyendo directamente el contenido del SVG -->
+        <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+            <symbol id="icon-windows" viewBox="0 0 24 24">
+                <path d="M0,3.449L9.75,2.1v9.45H0V3.449z M10.949,1.949L24,0v11.4H10.949V1.949z M0,12.6h9.75v9.45L0,20.699V12.6z M10.949,12.6H24V24l-12.9-1.801L10.949,12.6z"/>
+            </symbol>
+            <symbol id="icon-android" viewBox="0 0 24 24">
+                <path d="M6.002 2.28v2.173c-1.798.536-3.01 2.18-3.01 4.109v8.685c0 .584.521 1.057 1.166 1.057.644 0 1.166-.473 1.166-1.057V8.562c0-1.315 1.09-2.383 2.43-2.383h8.518c1.34 0 2.428 1.068 2.428 2.383v8.685c0 .584.522 1.057 1.166 1.057.644 0 1.166-.473 1.166-1.057V8.562c0-1.929-1.212-3.573-3.01-4.11V2.281c0-.584-.523-1.057-1.166-1.057s-1.166.473-1.166 1.057v1.86h-7.756V2.281c0-.584-.522-1.057-1.166-1.057s-1.166.473-1.166 1.057zM9.38 14.846a1.166 1.166 0 0 0-1.643 0 1.166 1.166 0 0 0 0 1.654c.227.227.522.341.822.341.3 0 .596-.114.822-.34a1.166 1.166 0 0 0 0-1.655zm5.26 0a1.166 1.166 0 0 0-1.643 0 1.166 1.166 0 0 0 0 1.654c.227.227.522.341.822.341.3 0 .596-.114.822-.34a1.166 1.166 0 0 0 0-1.655z"/>
+            </symbol>
+        </svg>
+    </div>
+    
+    <header>
+        <div class="logo-container">
+            <h1>RobleGames</h1>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="#" class="active">Inicio</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">Categorías</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Todos los Juegos</a></li>
+                        <li><a href="#">Juegos de Celular</a></li>
+                        <li><a href="#">Juegos de PC</a></li>
+                        <li><a href="#">Juegos para Ambos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h2>Bienvenido a RobleGames</h2>
+            <p>Explora nuestra colección de juegos entretenidos</p>
+        </section>
+
+        <section class="games-menu">
+            <h2>Nuestros Juegos</h2>
+            <div class="games-grid">
+                <div class="game-card" id="TaTeTi">
+                    <div class="game-image">
+                        <img src="games/TaTeTi/TaTeTi.png" alt="TaTeTi Futurista">
+                    </div>
+                    <h3>TaTeTi Futurista</h3>
+                    <div class="platform-icons">
+                        <svg class="platform-icon"><use xlink:href="#icon-windows"></use></svg>
+                        <svg class="platform-icon"><use xlink:href="#icon-android"></use></svg>
+                    </div>
+                    <button class="play-button" data-game="TaTeTi">Jugar</button>
+                </div>
+                <div class="game-card" id="Snake">
+                    <div class="game-image">
+                        <img src="games/Snake/Snake.png" alt="Snake Futurista">
+                    </div>
+                    <h3>Snake Futurista</h3>
+                    <div class="platform-icons">
+                        <svg class="platform-icon"><use xlink:href="#icon-windows"></use></svg>
+                    </div>
+                    <button class="play-button" data-game="Snake">Jugar</button>
+                </div>
+                <div class="game-card" id="BigBet">
+                    <div class="game-image">
+                        <img src="games/BigBet/BigBet.svg" alt="BigBet">
+                    </div>
+                    <h3>BigBet</h3>
+                    <div class="platform-icons">
+                        <svg class="platform-icon"><use xlink:href="#icon-windows"></use></svg>
+                        <svg class="platform-icon"><use xlink:href="#icon-android"></use></svg>
+                    </div>
+                    <button class="play-button" data-game="BigBet">Jugar</button>
+                </div>
+                <div class="game-card" id="Cosmic Clicker">
+                    <div class="game-image">
+                        <img src="games/Cosmic Clicker/CosmicClicker.svg" alt="Cosmic Clicker">
+                    </div>
+                    <h3>Cosmic Clicker</h3>
+                    <div class="platform-icons">
+                        <svg class="platform-icon"><use xlink:href="#icon-windows"></use></svg>
+                        <svg class="platform-icon"><use xlink:href="#icon-android"></use></svg>
+                    </div>
+                    <button class="play-button" data-game="Cosmic Clicker">Jugar</button>
+                </div>
+                <div class="game-card" id="Food Stand Empire">
+                    <div class="game-image">
+                        <img src="games/Food Stand Empire/image.png" alt="Food Stand Empire">
+                    </div>
+                    <h3>Food Stand Empire</h3>
+                    <div class="platform-icons">
+                        <svg class="platform-icon"><use xlink:href="#icon-windows"></use></svg>
+                        <svg class="platform-icon"><use xlink:href="#icon-android"></use></svg>
+                    </div>
+                    <button class="play-button" data-game="Food Stand Empire">Jugar</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 RobleGames. Todos los derechos reservados.</p>
+        <p>Desarrollado por RobleUY.</p>
+    </footer>
+
+    <script src="scripts/main.js"></script>
+</body>
+</html>
