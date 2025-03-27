@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recharge Your Flashlight</title>
+  <style>
+    /* Reset y canvas a pantalla completa */
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+      height: 100%;
+    }
+    canvas {
+      display: block;
+      background: #000;
+    }
+    /* Botón de configuración (arriba a la derecha) */
+    #configButton {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+      padding: 10px;
+      font-size: 14px;
+    }
+    /* Overlay para el menú de configuración */
+    #configMenu {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 20px;
+      border: 2px solid gold;
+      z-index: 20;
+      display: none;
+    }
+    #configMenu label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    #configMenu select,
+    #configMenu input[type="checkbox"] {
+      margin-bottom: 10px;
+    }
+    #configMenu button {
+      margin-top: 10px;
+    }
+    /* CONTROLES TÁCTILES */
+    /* Joystick (esquina inferior izquierda) */
+    #joystickContainer {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 100px;
+      height: 100px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      z-index: 30;
+      touch-action: none;
+    }
+    #joystickBase {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100px;
+      height: 100px;
+      transform: translate(-50%, -50%);
+      border: 2px solid white;
+      border-radius: 50%;
+    }
+    #joystickStick {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 40px;
+      height: 40px;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+    }
+    /* Botón de ataque (esquina inferior derecha) */
+    #attackButton {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 80px;
+      height: 80px;
+      background: rgba(255,0,0,0.8);
+      border: 2px solid white;
+      border-radius: 50%;
+      z-index: 30;
+      color: white;
+      font-size: 18px;
+      text-align: center;
+      line-height: 80px;
+      user-select: none;
+      touch-action: none;
+    }
+    /* Media queries para pantallas más grandes */
+    @media (min-width: 600px) {
+      #joystickContainer {
+        width: 120px;
+        height: 120px;
+      }
+      #joystickBase {
+        width: 120px;
+        height: 120px;
+      }
+      #joystickStick {
+        width: 50px;
+        height: 50px;
+      }
+      #attackButton {
+        width: 100px;
+        height: 100px;
+        line-height: 100px;
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <button id="configButton">Config</button>
+  <div id="configMenu">
+    <h2 id="configTitle">Configuration</h2>
+    <label for="languageSelect">Language / Idioma:</label>
+    <select id="languageSelect">
+      <option value="en" selected>English</option>
+      <option value="es">Espanol</option>
+    </select>
+    <label for="soundsToggle">Sounds / Sonidos:</label>
+    <input type="checkbox" id="soundsToggle" checked>
+    <br>
+    <button id="closeConfig">Close</button>
+  </div>
+  
+  <!-- Controles táctiles: Joystick y Botón de Ataque -->
+  <div id="joystickContainer">
+    <div id="joystickBase"></div>
+    <div id="joystickStick"></div>
+  </div>
+  <div id="attackButton">Attack</div>
+  
+  <script>
+    /********** VARIABLES DE CONFIGURACIÓN GLOBAL **********/
+    let difficulty = "";
+    let language = localStorage.getItem("rechargeyourflashlight_language") || "en";
+    let soundsEnabled = localStorage.getItem("rechargeyourflashlight_sounds");
+    if(soundsEnabled === null) { soundsEnabled = true; } else { soundsEnabled = (soundsEnabled === "true"); }
+
+    // Diccionario de textos SIN tildes.
+    const texts = {
+      en: {
+        title: "Recharge Your Flashlight",
+        gameOver: "GAME OVER",
+        pressEnter: "Tap anywhere to restart",
+        health: "Health",
+        battery: "Battery",
+        time: "Time",
+        boostActive: "Speed Boost Active!",
+        record: "Record: ",
+        loading1: "This game was developed by RobleUY",
+        loading2: "Press anywhere to start",
+        selectDifficulty: "Select Difficulty",
+        easy: "Easy",
+        normal: "Normal",
+        hard: "Hard",
+        configTitle: "Configuration",
+        difficulty: "Difficulty"
+      },
+      es: {
+        title: "Recarga tu Linterna",
+        gameOver: "FIN DEL JUEGO",
+        pressEnter: "Toca en cualquier lado para reiniciar",
+        health: "Salud",
+        battery: "Bateria",
+        time: "Tiempo",
+        boostActive: "Boost de Velocidad Activo!",
+        record: "Record: ",
+        loading1: "Este juego fue desarrollado por RobleUY",
+        loading2: "Presiona en cualquier parte para comenzar",
+        selectDifficulty: "Selecciona la dificultad",
+        easy: "Facil",
+        normal: "Normal",
+        hard: "Dificil",
+        configTitle: "Configuracion",
+        difficulty: "Dificultad"
+      }
+    };
+
+    /********** VARIABLES DEL ESTADO DEL JUEGO **********/
+    // gameState: "loading", "selectDifficulty", "playing", "gameover"
+    let gameState = "loading";
+    let loadingTime = 0;
+    let recordTime = 0; // Se actualizará según la dificultad
+
+    // Parámetros dependientes de la dificultad.
+    let ghostSpeedModifier = 1.0;
+    let ghostSpawnInterval = 150;
+    let damageAmount = 20;
+    function setDifficultyParameters(diff) {
+      if(diff === "easy") {
+        ghostSpeedModifier = 0.8;
+        ghostSpawnInterval = 200;
+        damageAmount = 15;
+      } else if(diff === "normal") {
+        ghostSpeedModifier = 1.0;
+        ghostSpawnInterval = 150;
+        damageAmount = 20;
+      } else if(diff === "hard") {
+        ghostSpeedModifier = 1.2;
+        ghostSpawnInterval = 100;
+        damageAmount = 30;
+      }
+    }
+
+    /********** PARÁMETROS DEL JUEGO **********/
+    const tileSize = 64;
+    const walkableThreshold = 0.4;
+    const baseSpeed = 3;
+    const boostSpeed = 6;
+    let currentSpeed = baseSpeed;
+    let boostTimer = 0;
+    let health = 100;
+    let battery = 100;
+    const batteryDrainRate = 0.02;
+    let survivalTime = 0;
+    const player = { x: 0, y: 0, facing: 0 };
+
+    let ghosts = [];
+    let particles = [];
+    let batteryPickups = [];
+    let boostPickups = [];
+    let healthPickups = [];
+    let breakParticles = [];
+
+    let ghostSpawnTimer = 0;
+    let batterySpawnTimer = 0;
+    let boostSpawnTimer = 0;
+    let healthSpawnTimer = 0;
+
+    const ghostBaseSpeed = 1.0;
+    const ghostCollisionDistance = 20;
+    const pickupCollisionDistance = 20;
+    let damageEffectTimer = 0;
+
+    // Estado de cada tile: clave "i,j" -> undefined, número (nivel de golpe) o "broken"
+    const tileStatus = {};
+
+    /********** AUDIO **********/
+    const painSound = new Audio("dolor.mp3");
+    const footstepsSound = new Audio("pasos.mp3");
+    footstepsSound.loop = true;
+    const pickupSound = new Audio("recojer.mp3");
+    const golpeSound = new Audio("golpe.mp3");
+
+    /********** CONFIGURACIÓN DEL CANVAS **********/
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    /********** MENÚ DE CONFIGURACIÓN **********/
+    const configButton = document.getElementById("configButton");
+    const configMenu = document.getElementById("configMenu");
+    const closeConfigButton = document.getElementById("closeConfig");
+    const languageSelect = document.getElementById("languageSelect");
+    const soundsToggle = document.getElementById("soundsToggle");
+    const configTitle = document.getElementById("configTitle");
+
+    languageSelect.value = language;
+    soundsToggle.checked = soundsEnabled;
+    configTitle.textContent = texts[language].configTitle;
+
+    configButton.addEventListener("click", () => {
+      configMenu.style.display = "block";
+    });
+    closeConfigButton.addEventListener("click", () => {
+      configMenu.style.display = "none";
+    });
+    languageSelect.addEventListener("change", () => {
+      language = languageSelect.value;
+      localStorage.setItem("rechargeyourflashlight_language", language);
+      configTitle.textContent = texts[language].configTitle;
+    });
+    soundsToggle.addEventListener("change", () => {
+      soundsEnabled = soundsToggle.checked;
+      localStorage.setItem("rechargeyourflashlight_sounds", soundsEnabled);
+    });
+
+    /********** CONTROLES DE TECLADO Y REINICIO AL TOCAR (GAMEOVER) **********/
+    const keys = {};
+    document.addEventListener("keydown", e => {
+      keys[e.key] = true;
+      // También se mantiene el disparo con la barra (para teclado)
+      if(e.key === " " && gameState === "playing") {
+        attackAction();
+      }
+    });
+    document.addEventListener("keyup", e => {
+      keys[e.key] = false;
+    });
+    // Si el juego está en gameover, tocar o hacer clic en cualquier parte reinicia
+    document.addEventListener("click", () => {
+      if(gameState === "gameover") {
+        resetGame();
+        gameState = "loading";
+      }
+    });
+    document.addEventListener("touchstart", () => {
+      if(gameState === "gameover") {
+        resetGame();
+        gameState = "loading";
+      }
+    });
+
+    // Manejador de clic/touch en el canvas para otras etapas
+    canvas.addEventListener("click", function(e) {
+      if(gameState === "loading") {
+        gameState = "selectDifficulty";
+      } else if(gameState === "selectDifficulty") {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const buttonWidth = 200, buttonHeight = 50, spacing = 20;
+        const cx = canvas.width / 2 - buttonWidth / 2;
+        const startY = canvas.height / 2 - (buttonHeight * 1.5 + spacing);
+        const buttons = [
+          { label: "easy", text: texts[language].easy, x: cx, y: startY },
+          { label: "normal", text: texts[language].normal, x: cx, y: startY + buttonHeight + spacing },
+          { label: "hard", text: texts[language].hard, x: cx, y: startY + 2*(buttonHeight+spacing) }
+        ];
+        for(let btn of buttons) {
+          if(mx >= btn.x && mx <= btn.x + buttonWidth &&
+             my >= btn.y && my <= btn.y + buttonHeight) {
+            difficulty = btn.label;
+            setDifficultyParameters(difficulty);
+            localStorage.setItem("rechargeyourflashlight_difficulty", difficulty);
+            recordTime = parseFloat(localStorage.getItem("rechargeyourflashlight_record_" + difficulty)) || 0;
+            gameState = "playing";
+            break;
+          }
+        }
+      }
+    });
+
+    /********** ACCIÓN DE ATAQUE **********/
+    function attackAction() {
+      if(gameState !== "playing") return;
+      const playerTileX = Math.floor(player.x / tileSize);
+      const playerTileY = Math.floor(player.y / tileSize);
+      const dxTile = Math.round(Math.cos(player.facing));
+      const dyTile = Math.round(Math.sin(player.facing));
+      const targetTileX = playerTileX + dxTile;
+      const targetTileY = playerTileY + dyTile;
+      const keyTile = targetTileX + "," + targetTileY;
+      if(pseudoRandom(targetTileX, targetTileY) >= walkableThreshold && tileStatus[keyTile] !== "broken") {
+        if(tileStatus[keyTile] === undefined) {
+          tileStatus[keyTile] = 1;
+        } else if(typeof tileStatus[keyTile] === "number") {
+          tileStatus[keyTile]++;
+        }
+        if(soundsEnabled) {
+          golpeSound.pause();
+          golpeSound.currentTime = 0;
+          golpeSound.play();
+        }
+        if(tileStatus[keyTile] >= 4) {
+          tileStatus[keyTile] = "broken";
+          spawnBreakParticles(targetTileX, targetTileY);
+        }
+      }
+    }
+    // Asignar la acción de ataque al botón táctil
+    const attackButton = document.getElementById("attackButton");
+    attackButton.addEventListener("touchstart", e => {
+      e.preventDefault();
+      attackAction();
+    });
+    attackButton.addEventListener("mousedown", e => {
+      e.preventDefault();
+      attackAction();
+    });
+
+    /********** CONTROLES DEL JOYSTICK VIRTUAL **********/
+    let joystickInput = { x: 0, y: 0 };
+    const joystickContainer = document.getElementById("joystickContainer");
+    const joystickStick = document.getElementById("joystickStick");
+    let joystickActive = false;
+    function updateJoystick(event) {
+      event.preventDefault();
+      let touch;
+      if(event.touches && event.touches.length > 0) {
+        touch = event.touches[0];
+      } else {
+        touch = event;
+      }
+      const rect = joystickContainer.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const dx = x - centerX;
+      const dy = y - centerY;
+      const distance = Math.sqrt(dx*dx + dy*dy);
+      const maxDistance = rect.width / 2;
+      let normalizedX = dx / maxDistance;
+      let normalizedY = dy / maxDistance;
+      if(distance > maxDistance) {
+        normalizedX = dx / distance;
+        normalizedY = dy / distance;
+      }
+      joystickInput.x = normalizedX;
+      joystickInput.y = normalizedY;
+      const stickX = centerX + normalizedX * maxDistance;
+      const stickY = centerY + normalizedY * maxDistance;
+      joystickStick.style.left = stickX + "px";
+      joystickStick.style.top = stickY + "px";
+    }
+    function resetJoystick() {
+      joystickInput.x = 0;
+      joystickInput.y = 0;
+      joystickStick.style.left = "50%";
+      joystickStick.style.top = "50%";
+    }
+    joystickContainer.addEventListener("touchstart", function(e) {
+      joystickActive = true;
+      updateJoystick(e);
+    });
+    joystickContainer.addEventListener("touchmove", function(e) {
+      if(joystickActive) updateJoystick(e);
+    });
+    joystickContainer.addEventListener("touchend", function(e) {
+      joystickActive = false;
+      resetJoystick();
+    });
+    // Para usuarios de mouse (pruebas en escritorio)
+    joystickContainer.addEventListener("mousedown", function(e) {
+      joystickActive = true;
+      updateJoystick(e);
+    });
+    document.addEventListener("mousemove", function(e) {
+      if(joystickActive) updateJoystick(e);
+    });
+    document.addEventListener("mouseup", function(e) {
+      if(joystickActive) {
+        joystickActive = false;
+        resetJoystick();
+      }
+    });
+
+    /********** FUNCIONES ÚTILES **********/
+    function resetGame() {
+      health = 100;
+      battery = 100;
+      survivalTime = 0;
+      player.x = 0;
+      player.y = 0;
+      ghosts = [];
+      batteryPickups = [];
+      boostPickups = [];
+      healthPickups = [];
+      boostTimer = 0;
+      currentSpeed = baseSpeed;
+      damageEffectTimer = 0;
+      for(let key in tileStatus) { delete tileStatus[key]; }
+    }
+    function pseudoRandom(x, y) {
+      const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+      return n - Math.floor(n);
+    }
+    function isWalkable(x, y) {
+      const tileX = Math.floor(x / tileSize);
+      const tileY = Math.floor(y / tileSize);
+      const key = tileX + "," + tileY;
+      if(tileStatus[key] === "broken") return true;
+      if(typeof tileStatus[key] === "number") return false;
+      return pseudoRandom(tileX, tileY) < walkableThreshold;
+    }
+
+    /********** FUNCIONES DE SPAWN **********/
+    function spawnGhost() {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * 500 + 200;
+      const ghost = {
+        x: player.x + Math.cos(angle) * distance,
+        y: player.y + Math.sin(angle) * distance
+      };
+      ghosts.push(ghost);
+    }
+    function spawnBatteryPickup() {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * 500 + 200;
+      const pickup = {
+        x: player.x + Math.cos(angle) * distance,
+        y: player.y + Math.sin(angle) * distance,
+        size: 10,
+        life: 0,
+        maxLife: 600
+      };
+      batteryPickups.push(pickup);
+    }
+    function spawnBoostPickup() {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * 500 + 200;
+      const pickup = {
+        x: player.x + Math.cos(angle) * distance,
+        y: player.y + Math.sin(angle) * distance,
+        size: 10,
+        life: 0,
+        maxLife: 600
+      };
+      boostPickups.push(pickup);
+    }
+    function spawnHealthPickup() {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * 500 + 200;
+      const pickup = {
+        x: player.x + Math.cos(angle) * distance,
+        y: player.y + Math.sin(angle) * distance,
+        size: 10,
+        life: 0,
+        maxLife: 600
+      };
+      healthPickups.push(pickup);
+    }
+    function spawnParticle() {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * Math.max(canvas.width, canvas.height);
+      const particle = {
+        x: player.x + Math.cos(angle) * distance,
+        y: player.y + Math.sin(angle) * distance,
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: (Math.random() - 0.5) * 0.2,
+        life: 0,
+        maxLife: 100 + Math.random() * 100,
+        size: Math.random() * 2 + 1
+      };
+      particles.push(particle);
+    }
+    function spawnBreakParticles(tileX, tileY) {
+      const centerX = tileX * tileSize + tileSize / 2;
+      const centerY = tileY * tileSize + tileSize / 2;
+      for(let i = 0; i < 20; i++){
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 2 + 1;
+        const bp = {
+          x: centerX,
+          y: centerY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 0,
+          maxLife: 30 + Math.random() * 20,
+          size: Math.random() * 3 + 2,
+          color: "rgba(200,200,200,0.8)"
+        };
+        breakParticles.push(bp);
+      }
+    }
+    for(let i = 0; i < 100; i++){
+      spawnParticle();
+    }
+
+    /********** FUNCIONES DE DIBUJO **********/
+    // PANTALLA DE LOADING con efecto de fundido en el texto
+    function drawLoading() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      let bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      bgGradient.addColorStop(0, "#000000");
+      bgGradient.addColorStop(1, "#222222");
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const fadeDuration = 100;
+      const devAlpha = Math.min(loadingTime / fadeDuration, 1);
+      ctx.fillStyle = "rgba(255, 255, 255, " + devAlpha + ")";
+      ctx.font = "36px 'Segoe UI', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(texts[language].loading1, canvas.width/2, canvas.height/2 - 40);
+
+      let alpha = 0.5 + 0.5 * Math.abs(Math.sin(loadingTime/20));
+      ctx.fillStyle = "rgba(0,255,0," + alpha + ")";
+      ctx.font = "24px 'Segoe UI', sans-serif";
+      ctx.fillText(texts[language].loading2, canvas.width/2, canvas.height/2);
+
+      loadingTime++;
+    }
+    // PANTALLA DE SELECCIÓN DE DIFICULTAD con botones estilizados
+    function drawSelectDifficulty() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      let bgGradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width/2);
+      bgGradient.addColorStop(0, "#111");
+      bgGradient.addColorStop(1, "#000");
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      ctx.fillStyle = "white";
+      ctx.font = "36px 'Segoe UI', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(texts[language].selectDifficulty, canvas.width/2, canvas.height/2 - 100);
+      const buttonWidth = 200, buttonHeight = 50, spacing = 20;
+      const cx = canvas.width / 2 - buttonWidth / 2;
+      const startY = canvas.height/2 - (buttonHeight*1.5 + spacing);
+      const buttons = [
+        { label: "easy", text: texts[language].easy, x: cx, y: startY },
+        { label: "normal", text: texts[language].normal, x: cx, y: startY + buttonHeight + spacing },
+        { label: "hard", text: texts[language].hard, x: cx, y: startY + 2*(buttonHeight+spacing) }
+      ];
+      buttons.forEach(btn => {
+        let btnGradient = ctx.createLinearGradient(btn.x, btn.y, btn.x, btn.y + buttonHeight);
+        btnGradient.addColorStop(0, "#555");
+        btnGradient.addColorStop(1, "#222");
+        ctx.fillStyle = btnGradient;
+        ctx.fillRect(btn.x, btn.y, buttonWidth, buttonHeight);
+        ctx.strokeStyle = "gold";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(btn.x, btn.y, buttonWidth, buttonHeight);
+        ctx.fillStyle = "white";
+        ctx.font = "24px 'Segoe UI', sans-serif";
+        ctx.fillText(btn.text, btn.x + buttonWidth/2, btn.y + buttonHeight/2 + 8);
+      });
+    }
+    // DIBUJAR FANTASMA con efecto de sombra y glow en los ojos
+    function drawGhost(ghost, offsetX, offsetY) {
+      const screenX = ghost.x + offsetX;
+      const screenY = ghost.y + offsetY;
+      ctx.save();
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "rgba(255, 0, 0, 0.7)";
+      ctx.fillStyle = "#111";
+      ctx.beginPath();
+      ctx.moveTo(screenX - 25, screenY);
+      ctx.bezierCurveTo(screenX - 25, screenY - 40, screenX + 25, screenY - 40, screenX + 25, screenY);
+      ctx.lineTo(screenX + 20, screenY + 30);
+      ctx.lineTo(screenX + 10, screenY + 20);
+      ctx.lineTo(screenX, screenY + 30);
+      ctx.lineTo(screenX - 10, screenY + 20);
+      ctx.lineTo(screenX - 20, screenY + 30);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      
+      ctx.save();
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "rgba(255, 0, 0, 0.9)";
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(screenX - 10, screenY - 10, 4, 0, Math.PI * 2);
+      ctx.arc(screenX + 10, screenY - 10, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      
+      ctx.fillStyle = "black";
+      ctx.beginPath();
+      ctx.arc(screenX - 10, screenY - 10, 2, 0, Math.PI * 2);
+      ctx.arc(screenX + 10, screenY - 10, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // DIBUJAR EL MUNDO DEL JUEGO (estados "playing" o "gameover")
+    function drawGame() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // Efecto de sacudida (screen shake) al recibir daño
+      let shakeX = 0, shakeY = 0;
+      if(damageEffectTimer > 0) {
+        shakeX = (Math.random() - 0.5) * 10;
+        shakeY = (Math.random() - 0.5) * 10;
+      }
+      ctx.save();
+      ctx.translate(shakeX, shakeY);
+      const offsetX = canvas.width/2 - player.x;
+      const offsetY = canvas.height/2 - player.y;
+      // Dibujar tiles del mapa
+      const startX = -offsetX - tileSize;
+      const startY = -offsetY - tileSize;
+      const endX = canvas.width - offsetX + tileSize;
+      const endY = canvas.height - offsetY + tileSize;
+      const tileStartX = Math.floor(startX/tileSize);
+      const tileStartY = Math.floor(startY/tileSize);
+      const tileEndX = Math.floor(endX/tileSize);
+      const tileEndY = Math.floor(endY/tileSize);
+      for(let i = tileStartX; i <= tileEndX; i++){
+        for(let j = tileStartY; j <= tileEndY; j++){
+          const r = pseudoRandom(i, j);
+          const x = i * tileSize + offsetX;
+          const y = j * tileSize + offsetY;
+          const key = i + "," + j;
+          if(tileStatus[key] === "broken"){
+            ctx.fillStyle = "#111";
+            ctx.fillRect(x, y, tileSize, tileSize);
+          } else if(typeof tileStatus[key] === "number"){
+            ctx.fillStyle = "#333";
+            ctx.fillRect(x, y, tileSize, tileSize);
+            ctx.strokeStyle = "#000";
+            ctx.strokeRect(x, y, tileSize, tileSize);
+          } else {
+            if(r < walkableThreshold){
+              ctx.fillStyle = "#111";
+              ctx.fillRect(x, y, tileSize, tileSize);
+            } else {
+              ctx.fillStyle = "#333";
+              ctx.fillRect(x, y, tileSize, tileSize);
+              ctx.strokeStyle = "#000";
+              ctx.strokeRect(x, y, tileSize, tileSize);
+            }
+          }
+        }
+      }
+      // Borde dorado en el bloque al que se mira
+      const playerTileX = Math.floor(player.x / tileSize);
+      const playerTileY = Math.floor(player.y / tileSize);
+      const targetTileX = playerTileX + Math.round(Math.cos(player.facing));
+      const targetTileY = playerTileY + Math.round(Math.sin(player.facing));
+      const keyTile = targetTileX + "," + targetTileY;
+      if(pseudoRandom(targetTileX, targetTileY) >= walkableThreshold && tileStatus[keyTile] !== "broken"){
+        const tileScreenX = targetTileX * tileSize + offsetX;
+        const tileScreenY = targetTileY * tileSize + offsetY;
+        ctx.strokeStyle = "gold";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(tileScreenX, tileScreenY, tileSize, tileSize);
+      }
+      // Dibujar pickups con efecto de glow
+      batteryPickups.forEach(pickup => {
+        const screenX = pickup.x + offsetX;
+        const screenY = pickup.y + offsetY;
+        ctx.save();
+        let glow = ctx.createRadialGradient(screenX, screenY, pickup.size, screenX, screenY, pickup.size+8);
+        glow.addColorStop(0, "rgba(255,255,0,0.7)");
+        glow.addColorStop(1, "rgba(255,255,0,0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, pickup.size+8, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = "yellow";
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, pickup.size, 0, Math.PI*2);
+        ctx.fill();
+      });
+      boostPickups.forEach(pickup => {
+        const screenX = pickup.x + offsetX;
+        const screenY = pickup.y + offsetY;
+        ctx.save();
+        let glow = ctx.createRadialGradient(screenX, screenY, pickup.size, screenX, screenY, pickup.size+8);
+        glow.addColorStop(0, "rgba(0,255,255,0.7)");
+        glow.addColorStop(1, "rgba(0,255,255,0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, pickup.size+8, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = "cyan";
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, pickup.size, 0, Math.PI*2);
+        ctx.fill();
+      });
+      healthPickups.forEach(pickup => {
+        const screenX = pickup.x + offsetX;
+        const screenY = pickup.y + offsetY;
+        ctx.save();
+        let glow = ctx.createRadialGradient(screenX, screenY, pickup.size, screenX, screenY, pickup.size+8);
+        glow.addColorStop(0, "rgba(255,0,0,0.7)");
+        glow.addColorStop(1, "rgba(255,0,0,0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, pickup.size+8, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, pickup.size, 0, Math.PI*2);
+        ctx.fill();
+      });
+      // Dibujar partículas (efecto de niebla)
+      particles.forEach(p => {
+        const screenX = p.x + offsetX;
+        const screenY = p.y + offsetY;
+        ctx.fillStyle = "rgba(255,255,255,0.1)";
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, p.size, 0, Math.PI*2);
+        ctx.fill();
+      });
+      breakParticles.forEach(bp => {
+        const screenX = bp.x + offsetX;
+        const screenY = bp.y + offsetY;
+        ctx.fillStyle = bp.color;
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, bp.size, 0, Math.PI*2);
+        ctx.fill();
+      });
+      // Dibujar fantasmas
+      ghosts.forEach(ghost => {
+        drawGhost(ghost, offsetX, offsetY);
+      });
+      // Efecto de linterna con ligero flicker
+      const flashMinRadius = 50;
+      const flashMaxRadius = Math.max(canvas.width, canvas.height)/2;
+      const flicker = 0.95 + Math.random() * 0.1;
+      const flashRadius = flashMinRadius + (battery/100) * (flashMaxRadius - flashMinRadius) * flicker;
+      const gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, flashMinRadius, canvas.width/2, canvas.height/2, flashRadius);
+      gradient.addColorStop(0, "rgba(0,0,0,0)");
+      gradient.addColorStop(1, "rgba(0,0,0,0.95)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.restore();
+
+      // Efecto de lens flare en el centro
+      ctx.save();
+      let flareRadius = 20;
+      let flareGradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, flareRadius);
+      flareGradient.addColorStop(0, "rgba(255,255,255,0.8)");
+      flareGradient.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = flareGradient;
+      ctx.beginPath();
+      ctx.arc(canvas.width/2, canvas.height/2, flareRadius, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+
+      // Advertencia de batería baja
+      if(battery < 20) {
+        ctx.save();
+        let warningAlpha = (1 - battery/20) * 0.5;
+        ctx.fillStyle = "rgba(255,0,0," + warningAlpha + ")";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.restore();
+      }
+    }
+    // DIBUJAR HUD (elementos fijos)
+    function drawHUD() {
+      ctx.save();
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = "black";
+      ctx.fillStyle = "white";
+      ctx.font = "16px 'Segoe UI', sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(texts[language].health + ": " + Math.floor(health) + "%", 20, 20);
+      ctx.fillText(texts[language].battery + ": " + Math.floor(battery) + "%", 20, 40);
+      ctx.fillText(texts[language].time + ": " + (survivalTime/60).toFixed(1) + "s", 20, 60);
+      ctx.fillText(texts[language].record + (recordTime/60).toFixed(1) + "s", 20, 80);
+      ctx.fillText(texts[language].difficulty + ": " + (difficulty.charAt(0).toUpperCase() + difficulty.slice(1)), 20, 100);
+      if(boostTimer > 0) ctx.fillText(texts[language].boostActive, 20, 120);
+      // Barra de salud
+      ctx.fillStyle = "red";
+      ctx.fillRect(20, 130, 100, 10);
+      ctx.fillStyle = "green";
+      ctx.fillRect(20, 130, health, 10);
+      ctx.strokeStyle = "white";
+      ctx.strokeRect(20, 130, 100, 10);
+      ctx.restore();
+    }
+    // ACTUALIZACIÓN del juego (update)
+    function update() {
+      if(gameState === "playing") {
+        // Combinar entrada del teclado y del joystick
+        let keyX = (keys["ArrowRight"] || keys["d"] ? 1 : 0) - (keys["ArrowLeft"] || keys["a"] ? 1 : 0);
+        let keyY = (keys["ArrowDown"] || keys["s"] ? 1 : 0) - (keys["ArrowUp"] || keys["w"] ? 1 : 0);
+        let inputX = keyX + joystickInput.x;
+        let inputY = keyY + joystickInput.y;
+        if(inputX !== 0 || inputY !== 0){
+          player.facing = Math.atan2(inputY, inputX);
+        }
+        let newX = player.x;
+        let newY = player.y;
+        // Actualizar posición según la dirección de entrada
+        if(inputX < 0) {
+          const testX = player.x - currentSpeed;
+          if(isWalkable(testX, player.y)) newX = testX;
+        }
+        if(inputX > 0) {
+          const testX = player.x + currentSpeed;
+          if(isWalkable(testX, player.y)) newX = testX;
+        }
+        if(inputY < 0) {
+          const testY = player.y - currentSpeed;
+          if(isWalkable(player.x, testY)) newY = testY;
+        }
+        if(inputY > 0) {
+          const testY = player.y + currentSpeed;
+          if(isWalkable(player.x, testY)) newY = testY;
+        }
+        player.x = newX;
+        player.y = newY;
+        // Sonido de pasos si se mueve (teclado o joystick)
+        if((keyX !== 0 || keyY !== 0 || joystickInput.x !== 0 || joystickInput.y !== 0) && soundsEnabled) {
+          if(footstepsSound.paused) footstepsSound.play();
+        } else {
+          footstepsSound.pause();
+          footstepsSound.currentTime = 0;
+        }
+        battery -= batteryDrainRate;
+        if(battery <= 0) { battery = 0; gameState = "gameover"; }
+        survivalTime++;
+        batterySpawnTimer++;
+        if(batterySpawnTimer > 600){ spawnBatteryPickup(); batterySpawnTimer = 0; }
+        boostSpawnTimer++;
+        if(boostSpawnTimer > 800){ spawnBoostPickup(); boostSpawnTimer = 0; }
+        healthSpawnTimer++;
+        if(healthSpawnTimer > 1000){ spawnHealthPickup(); healthSpawnTimer = 0; }
+        for(let i = batteryPickups.length - 1; i >= 0; i--){
+          const pickup = batteryPickups[i];
+          pickup.life++;
+          if(pickup.life > pickup.maxLife){ batteryPickups.splice(i,1); continue; }
+          const dx = pickup.x - player.x, dy = pickup.y - player.y;
+          if(Math.sqrt(dx*dx+dy*dy) < pickupCollisionDistance){
+            battery = Math.min(100, battery + 25);
+            batteryPickups.splice(i,1);
+            if(soundsEnabled) pickupSound.play();
+          }
+        }
+        for(let i = boostPickups.length - 1; i >= 0; i--){
+          const pickup = boostPickups[i];
+          pickup.life++;
+          if(pickup.life > pickup.maxLife){ boostPickups.splice(i,1); continue; }
+          const dx = pickup.x - player.x, dy = pickup.y - player.y;
+          if(Math.sqrt(dx*dx+dy*dy) < pickupCollisionDistance){
+            boostTimer = 300;
+            currentSpeed = boostSpeed;
+            boostPickups.splice(i,1);
+            if(soundsEnabled) pickupSound.play();
+          }
+        }
+        for(let i = healthPickups.length - 1; i >= 0; i--){
+          const pickup = healthPickups[i];
+          pickup.life++;
+          if(pickup.life > pickup.maxLife){ healthPickups.splice(i,1); continue; }
+          const dx = pickup.x - player.x, dy = pickup.y - player.y;
+          if(Math.sqrt(dx*dx+dy*dy) < pickupCollisionDistance){
+            health = Math.min(100, health + 20);
+            healthPickups.splice(i,1);
+            if(soundsEnabled) pickupSound.play();
+          }
+        }
+        for(let i = ghosts.length - 1; i >= 0; i--){
+          const ghost = ghosts[i];
+          const dx = player.x - ghost.x, dy = player.y - ghost.y;
+          const dist = Math.sqrt(dx*dx+dy*dy);
+          if(dist > 0){
+            ghost.x += (dx/dist)*ghostBaseSpeed*ghostSpeedModifier;
+            ghost.y += (dy/dist)*ghostBaseSpeed*ghostSpeedModifier;
+          }
+          if(dist < ghostCollisionDistance){
+            health -= damageAmount;
+            damageEffectTimer = 10;
+            ghosts.splice(i,1);
+            if(soundsEnabled) painSound.play();
+            if(health <= 0){ health = 0; gameState = "gameover"; }
+          }
+        }
+        ghostSpawnTimer++;
+        if(ghostSpawnTimer > ghostSpawnInterval){ spawnGhost(); ghostSpawnTimer = 0; }
+        for(let i = particles.length - 1; i >= 0; i--){
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life++;
+          if(p.life > p.maxLife){ particles.splice(i,1); spawnParticle(); }
+        }
+        for(let i = breakParticles.length - 1; i >= 0; i--){
+          const bp = breakParticles[i];
+          bp.x += bp.vx;
+          bp.y += bp.vy;
+          bp.life++;
+          if(bp.life > bp.maxLife){ breakParticles.splice(i,1); }
+        }
+        if(damageEffectTimer > 0) damageEffectTimer--;
+      }
+    }
+    function loop() {
+      if(gameState === "loading") {
+        drawLoading();
+      } else if(gameState === "selectDifficulty") {
+        drawSelectDifficulty();
+      } else {
+        drawGame();
+        drawHUD();
+        if(gameState === "gameover"){
+          if(survivalTime > recordTime){
+            recordTime = survivalTime;
+            localStorage.setItem("rechargeyourflashlight_record_" + difficulty, recordTime);
+          }
+          ctx.save();
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = "red";
+          ctx.fillStyle = "red";
+          ctx.font = "48px 'Segoe UI', sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(texts[language].gameOver, canvas.width/2, canvas.height/2);
+          ctx.font = "24px 'Segoe UI', sans-serif";
+          ctx.fillText(texts[language].pressEnter, canvas.width/2, canvas.height/2 + 40);
+          ctx.restore();
+        }
+      }
+      update();
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

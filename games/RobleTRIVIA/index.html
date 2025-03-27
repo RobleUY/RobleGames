@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RobleTRIVIA</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RobleTRIVIA</h1>
+            <div class="score-container">
+                <span>Puntuación: </span>
+                <span id="score">0</span>
+            </div>
+        </header>
+
+        <main>
+            <div id="game-container">
+                <div id="start-screen" class="screen">
+                    <h2>¡Bienvenido a RobleTRIVIA!</h2>
+                    <button id="start-button">Comenzar Juego</button>
+                </div>
+
+                <div id="question-screen" class="screen hidden">
+                    <div class="timer-container">
+                        <span class="timer-text">10</span>
+                    </div>
+                    <div class="question-container">
+                        <h3 id="question-text"></h3>
+                    </div>
+                    <div class="options-container">
+                        <button class="option-button"></button>
+                        <button class="option-button"></button>
+                        <button class="option-button"></button>
+                    </div>
+                </div>
+
+                <div id="result-screen" class="screen hidden">
+                    <h2>¡Juego Terminado!</h2>
+                    <p>Tu puntuación final: <span id="final-score">0</span></p>
+                    <button id="restart-button">Jugar de Nuevo</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+
