@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">¡BIENVENIDO!</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: linear-gradient(45deg, #065c05, #191775, #a67117, #732415); 
+      background-size: 400% 400%; 
+      animation: gradientAnimation 10s ease infinite; 
+      font-family: 'Press Start 2P', cursive;
+    }
+
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .title {
+      font-size: 10px; 
+      color: white;
+      margin-bottom: 10px;
+      text-align: center;
+      z-index: 2;
+    }
+
+    .victories-container {
+      font-size: 14px; 
+      color: white;
+      margin-bottom: 10px;
+      z-index: 2;
+    }
+
+    .coins-container {
+      font-size: 14px; 
+      color: white;
+      margin-bottom: 10px;
+    }
+
+    .buttons-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .start-button {
+      position: relative;
+      padding: 10px 25px;
+      font-size: 9px;
+      background-color: #ff007f;
+      color: white;
+      border: 3px solid #ffb300;
+      border-radius: 10px;
+      font-family: 'Press Start 2P', cursive;
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.6), 0 0 25px rgba(255, 179, 0, 0.8);
+      z-index: 3;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: all;
+      transform: none;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      margin-bottom: 10px; 
+    }
+
+    .start-button:active {
+      transform: none;
+    }
+
+    .welcome-text {
+      font-size: 10px;
+      margin-bottom: 10px;
+    }
+
+    .start-text {
+      font-size: 8px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="title" id="titleText">¡Bienvenido a THE CIRCLE OF COLORS!</div>
+
+  <div class="coins-container">
+    <span id="coinsLabel">Monedas:</span> <span class="coins-count" id="coinsCount">0</span> 
+  </div>
+  
+  <div class="victories-container">
+    <span id="victoryLabel">Victorias:</span> <span class="victory-count" id="victoryCount">0</span>
+  </div>
+
+  <div class="buttons-container">
+    <button class="start-button" onclick="playSoundAndRedirect('jugar.html')">
+      <div class="welcome-text" id="startGameText">¡QUE COMIENCE EL JUEGO!</div>
+      <div class="start-text" id="clickToPlayText">CLICK PARA JUGAR</div>
+    </button>
+
+    <button class="start-button" onclick="playSoundAndRedirect('tienda.html')">
+      <div class="welcome-text" id="skinsText">SKINS</div>
+    </button>
+  
+    <button class="start-button" onclick="playSoundAndRedirect('opciones.html')">
+      <div class="welcome-text" id="settingsText">AJUSTES</div>
+    </button>
+
+    <!-- Nuevo botón para ir a creditos.html -->
+    <button class="start-button" onclick="playSoundAndRedirect('creditos.html')">
+      <div class="welcome-text" id="creditsText">CRÉDITOS</div>
+    </button>
+  </div>
+
+  <script>
+    function playSoundAndRedirect(url) {
+      const sound = new Audio('pulsar.mp3'); 
+      sound.play(); 
+
+      sound.onended = function() {
+        setTimeout(function() {
+          window.location.href = url; 
+        }, 10); 
+      };
+    }
+
+    function translatePage() {
+      const language = localStorage.getItem('circuloidioma') || 'english'; 
+
+      const texts = {
+        spanish: {
+          title: "¡Bienvenido a THE CIRCLE OF COLORS!",
+          coinsLabel: "Monedas:",
+          victoryLabel: "Victorias:",
+          startGameText: "¡QUE COMIENCE EL JUEGO!",
+          clickToPlayText: "CLICK PARA JUGAR",
+          skinsText: "SKINS",
+          settingsText: "AJUSTES",
+          creditsText: "CRÉDITOS"
+        },
+        english: {
+          title: "Welcome to THE CIRCLE OF COLORS!",
+          coinsLabel: "Coins:",
+          victoryLabel: "Victories:",
+          startGameText: "LET THE GAME BEGIN!",
+          clickToPlayText: "CLICK TO PLAY",
+          skinsText: "SKINS",
+          settingsText: "SETTINGS",
+          creditsText: "CREDITS"
+        }
+      };
+
+      const selectedTexts = texts[language];
+
+      document.getElementById("titleText").innerText = selectedTexts.title;
+      document.getElementById("coinsLabel").innerText = selectedTexts.coinsLabel;
+      document.getElementById("victoryLabel").innerText = selectedTexts.victoryLabel;
+      document.getElementById("startGameText").innerText = selectedTexts.startGameText;
+      document.getElementById("clickToPlayText").innerText = selectedTexts.clickToPlayText;
+      document.getElementById("skinsText").innerText = selectedTexts.skinsText;
+      document.getElementById("settingsText").innerText = selectedTexts.settingsText;
+      document.getElementById("creditsText").innerText = selectedTexts.creditsText;
+    }
+
+    const colors = ["#065c05", "#732415", "#a67117", "#191775"];
+    let currentColorIndex = 0;
+
+    setInterval(() => {
+      document.body.style.backgroundColor = colors[currentColorIndex];
+      currentColorIndex = (currentColorIndex + 1) % colors.length; 
+    }, 5000);
+
+    let starCount = parseInt(localStorage.getItem("circulowin")) || 0;
+    let coinCount = parseInt(localStorage.getItem("circulomonedas")) || 0;
+
+    document.getElementById("victoryCount").innerText = starCount;
+    document.getElementById("coinsCount").innerText = coinCount;
+
+    translatePage();
+  </script>
+</body>
+</html>

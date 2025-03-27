@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">CRÉDITOS - EL CÍRCULO DE COLORES</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: linear-gradient(45deg, #065c05, #191775, #a67117, #732415);
+      background-size: 400% 400%;
+      animation: gradientAnimation 10s ease infinite;
+      font-family: 'Press Start 2P', cursive;
+    }
+
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .credits-container {
+      text-align: center;
+      color: white;
+      padding: 20px;
+    }
+
+    .credits-container h1 {
+      font-size: 30px;
+      margin-bottom: 5px;
+    }
+
+    .credits-container p {
+      font-size: 10px;
+      margin-bottom: 5px;
+    }
+
+    .social-buttons-container {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .social-button, .back-button {
+      padding: 5px 10px;
+      font-size: 10px;
+      background-color: #ff007f;
+      color: white;
+      border: 3px solid #ffb300;
+      border-radius: 10px;
+      font-family: 'Press Start 2P', cursive;
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.6), 0 0 25px rgba(255, 179, 0, 0.8);
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      pointer-events: none; /* Disables clicking on social media buttons */
+    }
+
+    .social-button:hover, .back-button:hover {
+      background-color: #ff0066;
+    }
+
+    .back-button {
+      margin-top: 10px;
+      pointer-events: auto; /* Enables clicking on the back button */
+    }
+
+    .social-button span {
+      display: block;
+      font-size: 8px;
+      margin-top: 5px;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="credits-container">
+    <h1 id="creditsTitle">Créditos</h1>
+    <p id="creatorText"><strong>Creado por:</strong> RobleUY</p>
+    <p id="gameDescription"><strong>Sobre el juego:</strong><br> "El Círculo de Colores"<br> es un juego basado en habilidades<br> donde debes quedarte dentro de un <br>círculo en movimiento durante 60 segundos.<br> El círculo se encoge y se acelera con el tiempo,<br> haciendo que el desafío sea más difícil a medida que avanzas.</p>
+    <p id="socialText"><strong>Mis redes sociales:</strong></p>
+    <div class="social-buttons-container">
+      <button class="social-button"><span>Instagram</span><span>robleuy</span></button>
+      <button class="social-button"><span>YouTube</span><span>robleuy</span></button>
+      <button class="social-button"><span>TikTok</span><span>robleuy</span></button>
+    </div>
+
+    <div class="social-buttons-container">
+      <!-- El texto del botón se cambia dinámicamente -->
+      <button class="back-button" id="backButton" onclick="playSoundAndRedirect('index.html')">Volver al menú del juego</button>
+    </div>
+  </div>
+
+  <script>
+    function translatePage() {
+      const language = localStorage.getItem('circuloidioma') || 'spanish'; // Get selected language
+
+      const texts = {
+        spanish: {
+          creditsTitle: "Créditos",
+          creatorText: "<strong>Creado por:</strong> RobleUY",
+          gameDescription: "<strong>Sobre el juego:</strong><br> \"El Círculo de Colores\"<br> es un juego basado en habilidades<br> donde debes quedarte dentro de un <br>círculo en movimiento durante 60 segundos.<br> El círculo se encoge y se acelera con el tiempo,<br> haciendo que el desafío sea más difícil a medida que avanzas.",
+          socialText: "<strong>Mis redes sociales:</strong>",
+          backButton: "Volver al menú del juego"
+        },
+        english: {
+          creditsTitle: "Credits",
+          creatorText: "<strong>Creator:</strong> RobleUY",
+          gameDescription: "<strong>About the Game:</strong><br> \"The Circle of Colors\"<br> is a skill-based game<br> where you must stay within a <br>moving circle for 60 seconds.<br> The circle shrinks and speeds up over time,<br> making the challenge harder as you progress.",
+          socialText: "<strong>My social networks:</strong>",
+          backButton: "Return to the Game menu"
+        }
+      };
+
+      const selectedTexts = texts[language];
+
+      document.getElementById('creditsTitle').innerHTML = selectedTexts.creditsTitle;
+      document.getElementById('creatorText').innerHTML = selectedTexts.creatorText;
+      document.getElementById('gameDescription').innerHTML = selectedTexts.gameDescription;
+      document.getElementById('socialText').innerHTML = selectedTexts.socialText;
+      document.getElementById('backButton').innerHTML = selectedTexts.backButton; // Actualiza el texto del botón
+    }
+
+    function playSoundAndRedirect(url) {
+      const sound = new Audio('pulsar.mp3'); 
+      sound.play(); 
+
+      sound.onended = function() {
+        setTimeout(function() {
+          window.location.href = url; 
+        }, 10); 
+      };
+    }
+
+    window.onload = function() {
+      translatePage(); // Llama a la función de traducción al cargar la página
+    };
+  </script>
+
+</body>
+</html>

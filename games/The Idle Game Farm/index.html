@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <!-- Vista optimizada para dispositivos móviles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Idle Game Farm</title>
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; user-select:none; outline:none; }
+      #splash-screen {
+        position:fixed; top:0; left:0; width:100vw; height:100vh;
+        background:#000; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:10000;
+      }
+      #splash-dev, #splash-start { text-align:center; }
+      #splash-dev { font-size:2.5em; opacity:0; animation:fadeIn 1s forwards; color:aqua; }
+      #splash-start { font-size:1.8em; margin-top:20px; opacity:0; animation:bounce 1s forwards; animation-delay:0.5s; color:red; }
+      @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+      @keyframes bounce { 0% { opacity:0; transform:translateY(0) } 50% { opacity:1; transform:translateY(-10px) } 100% { opacity:1; transform:translateY(0) } }
+      body { background:linear-gradient(135deg, #2c3e50, #4ca1af); color:#ecf0f1; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-height:100vh; }
+      header {
+        background:linear-gradient(135deg, #16a085, #27ae60);
+        padding:20px; text-align:center; box-shadow:0 4px 8px rgba(0,0,0,0.4); position:relative;
+      }
+      header h1 { font-size:2.5em; margin-bottom:5px; color:#fff; text-shadow:1px 1px 2px rgba(0,0,0,0.5); }
+      /* Botones en header */
+      #accountBtn, #topPlayersBtn {
+        position:absolute; top:10px; padding:8px 16px; font-size:16px; cursor:pointer; border:none; border-radius:5px;
+      }
+      #accountBtn { right:10px; background-color:#007bff; color:#fff; }
+      /* Botón Top Players en azul */
+      #topPlayersBtn { right:120px; background-color:#007bff; color:#fff; }
+      .stats { display:flex; justify-content:center; gap:20px; font-size:1.2em; flex-wrap:wrap; color:#fff; }
+      #money-label, #crops-label { font-weight:bold; }
+      #inventory-panel { margin-top:10px; font-size:1em; color:#fff; }
+      #prices-panel {
+        padding:10px; text-align:center; background:rgba(255,255,255,0.9);
+        color:#2c3e50; font-size:1em; margin:15px; border:1px solid #bdc3c7; border-radius:6px;
+        box-shadow:0 2px 4px rgba(0,0,0,0.2);
+      }
+      #auto-production-display { margin-top:5px; font-size:1em; color:#fff; }
+      #sell-container { margin-top:15px; text-align:center; }
+      #sell-container button {
+        background:linear-gradient(135deg, #27ae60, #2ecc71); border:none; padding:10px 20px;
+        font-size:1.2em; color:#fff; border-radius:4px; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.3);
+        transition:background 0.2s;
+      }
+      #sell-container button:hover { background:linear-gradient(135deg, #2ecc71, #27ae60); }
+      #boosters-container { margin-top:15px; text-align:center; color:#fff; font-size:1em; }
+      .tabs {
+        display:flex; justify-content:space-around; background:rgba(255,255,255,0.95); border-bottom:2px solid #95a5a6; margin-top:20px;
+      }
+      .tabs button {
+        flex:1; padding:12px; background:rgba(255,255,255,0.95); border:none; cursor:pointer;
+        font-size:1.2em; color:#2c3e50; transition:background 0.2s; border-bottom:4px solid transparent;
+      }
+      .tabs button.active, .tabs button:hover { background:#bdc3c7; border-bottom:4px solid #16a085; }
+      .container { padding:20px; }
+      .section { display:none; padding:15px; }
+      .section.active { display:block; }
+      .mine-button {
+        display:block; margin:25px auto; padding:20px; font-size:2.5em; background:#27ae60;
+        border:4px solid #1e8449; border-radius:50%; width:110px; height:110px; cursor:pointer;
+        transition:transform 0.1s; position:relative; overflow:hidden; color:#fff; box-shadow:0 4px 8px rgba(0,0,0,0.3);
+      }
+      .mine-button:active { transform:scale(0.95); }
+      @keyframes pulse { 0% { transform:scale(1) } 50% { transform:scale(1.1) } 100% { transform:scale(1) } }
+      .pulse { animation:pulse 0.3s ease-out; }
+      .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:20px; margin-top:20px; }
+      .card {
+        background:#ffffff; padding:20px; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.1);
+        text-align:center; transition:transform 0.2s; color:#2c3e50;
+      }
+      .card:hover { transform:translateY(-5px); }
+      .card h3 { margin-bottom:10px; font-size:1.4em; }
+      .card p { margin:6px 0; font-size:1em; }
+      .card button {
+        padding:8px 14px; margin:6px; border:none; border-radius:4px; cursor:pointer; font-size:1em;
+        transition:background 0.2s;
+      }
+      .buy-btn { background:#27ae60; color:#fff; }
+      .buy-btn:hover { background:#1e8449; }
+      .use-btn, .upgrade-btn { background:#e74c3c; color:#fff; }
+      .use-btn:hover, .upgrade-btn:hover { background:#c0392b; }
+      .config-button {
+        background:#ffffff; color:#2c3e50; padding:10px 14px; border:1px solid #bdc3c7;
+        border-radius:4px; cursor:pointer; transition:background 0.2s; margin:6px 0; font-size:1em;
+      }
+      .config-button:hover { background:#ecf0f1; }
+      select.config-select {
+        padding:8px 12px; border-radius:4px; border:1px solid #bdc3c7; background:#ffffff;
+        color:#2c3e50; margin-left:6px; font-size:1em;
+      }
+      .big-upgrade-btn { font-size:1.4em; padding:12px 18px; }
+      /* Estilos para el modal de cuenta y Top Players */
+      #accountModal {
+        display:none; position:fixed; z-index:11000; left:0; top:0; width:100%; height:100%;
+        background-color:rgba(0,0,0,0.5);
+      }
+      #accountModalContent {
+        background-color:#fefefe; margin:10% auto; padding:20px; border:1px solid #888;
+        width:90%; max-width:400px; border-radius:10px; text-align:center; position:relative;
+        color: black; /* Textos en negro */
+      }
+      #accountModalContent h2 { margin-top:0; }
+      #accountModalContent input {
+        width:80%; padding:10px; margin:10px 0; font-size:16px;
+      }
+      #accountModalContent button {
+        padding:10px 20px; font-size:16px; margin:10px 5px; cursor:pointer; border:none;
+        border-radius:5px; background-color:#28a745; color:#fff;
+      }
+      #accountModalContent .cancel-btn { background-color:#dc3545; }
+      #accountModalContent .secondary-btn { background-color:#6c757d; }
+    </style>
+  </head>
+  <body>
+    <div id="splash-screen">
+      <div id="splash-dev">This game was developed by RobleUY</div>
+      <div id="splash-start">Press anywhere to start playing</div>
+    </div>
+    <header>
+      <h1>The Idle Game Farm</h1>
+      <button id="topPlayersBtn"></button>
+      <button id="accountBtn">👤</button>
+      <div class="stats">
+        <span id="money-label">Dinero:$</span>
+        <span id="money-count">0</span>&nbsp;&nbsp;
+        <span id="crops-label">Cultivos:</span>
+        <span id="crops-count">0</span>
+      </div>
+      <div id="inventory-panel"><strong>Inventario:</strong></div>
+      <div id="auto-production-display"></div>
+      <div id="sell-container">
+        <button class="buy-btn" onclick="sellCrops()">Vender Cultivos</button>
+      </div>
+      <div id="boosters-container"></div>
+    </header>
+    <div id="prices-panel"></div>
+    <div class="tabs">
+      <button id="tab-harvest" class="active" onclick="showSection('harvest')">Cosecha</button>
+      <button id="tab-auto" onclick="showSection('auto')">Automático</button>
+      <button id="tab-purchases" onclick="showSection('purchases')">Compras</button>
+      <button id="tab-fields" onclick="showSection('fields')">Campos</button>
+      <button id="tab-config" onclick="showSection('config')">Configuración</button>
+    </div>
+    <div class="container">
+      <div id="section-harvest" class="section active">
+        <button class="mine-button" onclick="harvestCrops()">🌾</button>
+        <div class="grid" id="click-upgrades"></div>
+      </div>
+      <div id="section-auto" class="section">
+        <div class="grid" id="auto-upgrades"></div>
+      </div>
+      <div id="section-purchases" class="section">
+        <div class="grid" id="purchase-upgrades"></div>
+      </div>
+      <div id="section-fields" class="section">
+        <div class="grid" id="fields-grid"></div>
+      </div>
+      <div id="section-config" class="section">
+        <h3 id="config-title">Configuración</h3>
+        <div class="config-option">
+          <label id="language-label" for="language-select">Idioma:</label>
+          <select id="language-select" class="config-select" onchange="changeLanguage(this.value)">
+            <option value="en" selected>English</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+        <div class="config-option">
+          <button id="sound-toggle" class="config-button" onclick="toggleSound()"></button>
+        </div>
+      </div>
+    </div>
+    <!-- Modal para la gestión de cuentas y Top Players -->
+    <div id="accountModal">
+      <div id="accountModalContent"></div>
+    </div>
+    <script>
+      /******************************
+       * DATOS Y ESTADOS DEL JUEGO
+       ******************************/
+      let inventory = { wheat:0, corn:0, rice:0, tomato:0, carrot:0, potato:0 },
+          cropPrices = { wheat:1, corn:2, rice:3, tomato:4, carrot:5, potato:6 },
+          cropTranslations = { wheat:"Trigo", corn:"Maíz", rice:"Arroz", tomato:"Tomate", carrot:"Zanahoria", potato:"Papa" };
+      let money = 0, baseClickValue = 1, tractorBuffEndTime = 0, sprinklerBuffEndTime = 0;
+
+      // Upgrades originales
+      const upgrades = {
+        herramienta: { name:{ en:"Hoe", es:"Azada" }, cost:20, count:0, clickBonus:1, category:"click" },
+        minero: { name:{ en:"Farmhand", es:"Ayudante de Granja" }, cost:50, count:0, production:1, category:"auto" },
+        excavadora: { name:{ en:"Tractor", es:"Tractor" }, cost:500, count:0, production:10, category:"auto" },
+        robot: { name:{ en:"Automated Harvester", es:"Cosechadora Automatizada" }, cost:1000, count:0, production:25, category:"auto" },
+        tnt: { name:{ en:"Fertilizer Bomb", es:"Bomba de Fertilizante" }, cost:100, count:0, category:"purchase", effectMultiplier:100, threshold:10, extraMultiplier:1.5 },
+        drill: { name:{ en:"Overdrive Tractor", es:"Tractor de Alta Potencia" }, cost:200, count:0, category:"purchase" },
+        laser: { name:{ en:"Sprinkler System", es:"Sistema de Riego" }, cost:500, count:0, category:"purchase" },
+        rocket: { name:{ en:"Drone", es:"Dron" }, cost:800, count:0, category:"purchase", effectMultiplier:800, threshold:4, extraMultiplier:2 }
+      };
+
+      // Campos originales
+      let mines = {
+        wheatField: { name:{ en:"Wheat Field", es:"Campo de Trigo" }, mineral:"wheat", cost:100, count:0, baseProduction:1, upgradeLevel:0, upgradeCost:50, productionMultiplier:1 },
+        cornField: { name:{ en:"Corn Field", es:"Campo de Maíz" }, mineral:"corn", cost:200, count:0, baseProduction:1, upgradeLevel:0, upgradeCost:100, productionMultiplier:1 },
+        riceField: { name:{ en:"Rice Field", es:"Campo de Arroz" }, mineral:"rice", cost:500, count:0, baseProduction:1, upgradeLevel:0, upgradeCost:250, productionMultiplier:1 },
+        tomatoField: { name:{ en:"Tomato Field", es:"Campo de Tomate" }, mineral:"tomato", cost:1000, count:0, baseProduction:1, upgradeLevel:0, upgradeCost:500, productionMultiplier:1 },
+        carrotField: { name:{ en:"Carrot Field", es:"Campo de Zanahoria" }, mineral:"carrot", cost:5000, count:0, baseProduction:1, upgradeLevel:0, upgradeCost:2500, productionMultiplier:1 },
+        potatoField: { name:{ en:"Potato Field", es:"Campo de Papa" }, mineral:"potato", cost:7000, count:0, baseProduction:1, upgradeLevel:0, upgradeCost:3500, productionMultiplier:1 }
+      };
+
+      // Guardamos copias de los valores originales para poder reiniciarlos al hacer logout
+      const initialUpgrades = JSON.parse(JSON.stringify(upgrades));
+      const initialMines = JSON.parse(JSON.stringify(mines));
+
+      const soundClick = new Audio("audios/click.mp3"),
+            soundPurchase = new Audio("audios/compra.mp3"),
+            soundBoost = new Audio("audios/boost.mp3"),
+            soundRobot = new Audio("audios/robot.mp3"),
+            soundTNT = new Audio("audios/tnt.mp3");
+
+      var languages = {
+        en: {
+          title:"The Idle Game Farm", money:"Money", minerals:"Crops", autoProduction:"Auto Production", sellMinerals:"Sell Crops",
+          mining:"Harvest", auto:"Auto", purchases:"Purchases", mines:"Fields", config:"Config", inventory:"Inventory",
+          language:"Language", cost:"Cost:", moneyUnit:"money", production:"Production:", perEach:"crops/s each", owned:"Owned:",
+          totalYield:"Total Yield:", ifBought:"If bought:", bonus:"Bonus:", currentClickYield:"Current Harvest Yield:",
+          nextUpgradeYield:"Next Upgrade Yield:", buy:"Buy", use:"Use", tntEffect:"Fertilizer Bomb: Instantly yields bonus crops.",
+          drillEffect:"Overdrive Tractor: Activates a buff doubling harvest yield for 30 sec.",
+          laserEffect:"Sprinkler System: Activates a buff doubling auto production for 15 sec.",
+          rocketEffect:"Drone: Instantly grants a huge bonus of crops.", clickUnit:"crops/harvest",
+          upgradeLevel:"Upgrade Level:", upgradeCost:"Upgrade Cost:", multiplier:"Multiplier:", buyMine:"Buy Field",
+          upgradeMine:"Upgrade Field", activateSound:"Activate Sound", deactivateSound:"Deactivate Sound",
+          topPlayers:"Top Players", accountManagement:"Account Management", createAccount:"Create Account",
+          login:"Login", loggedIn:"Account", logout:"Log Out", close:"Close", yourPosition:"Your position:",
+          accountUsernamePlaceholder:"Username", accountPasswordPlaceholder:"Password", cancel:"Cancel", accountUserLabel:"User:"
+        },
+        es: {
+          title:"The Idle Game Farm", money:"Dinero", minerals:"Cultivos", autoProduction:"Producción Automática", sellMinerals:"Vender Cultivos",
+          mining:"Cosecha", auto:"Automático", purchases:"Compras", mines:"Campos", config:"Configuración", inventory:"Inventario",
+          language:"Idioma", cost:"Costo:", moneyUnit:"dinero", production:"Producción:", perEach:"cultivos/s cada", owned:"Poseídos:",
+          totalYield:"Rendimiento Total:", ifBought:"Si se compra:", bonus:"Bono:", currentClickYield:"Rendimiento actual por cosecha:",
+          nextUpgradeYield:"Rendimiento tras mejora:", buy:"Comprar", use:"Usar", tntEffect:"Bomba de Fertilizante: Produce cultivos adicionales al instante.",
+          drillEffect:"Tractor de Alta Potencia: Activa un potenciador que duplica el rendimiento por cosecha durante 30 seg.",
+          laserEffect:"Sistema de Riego: Activa un potenciador que duplica la producción automática durante 15 seg.",
+          rocketEffect:"Dron: Otorga al instante un gran bono de cultivos.", clickUnit:"cultivos/cosecha",
+          upgradeLevel:"Nivel de mejora:", upgradeCost:"Costo de mejora:", multiplier:"Multiplicador:", buyMine:"Comprar campo",
+          upgradeMine:"Mejorar campo", activateSound:"Activar Sonido", deactivateSound:"Desactivar Sonido",
+          topPlayers:"Mejores Jugadores", accountManagement:"Gestión de Cuenta", createAccount:"Crear Cuenta",
+          login:"Iniciar Sesión", loggedIn:"Cuenta", logout:"Cerrar Sesión", close:"Cerrar", yourPosition:"Tu posición:",
+          accountUsernamePlaceholder:"Nombre de usuario", accountPasswordPlaceholder:"Contraseña", cancel:"Cancelar", accountUserLabel:"Usuario:"
+        }
+      };
+      var currentLanguage = "en";
+      let soundEnabled = true;
+
+      /******************************
+       * FUNCIONES DE IDIOMA Y UI
+       ******************************/
+      function toggleSound() {
+        soundEnabled = !soundEnabled;
+        updateLanguage();
+      }
+      function playSound(a) {
+        if (!soundEnabled) return;
+        let n = a.cloneNode();
+        n.play();
+      }
+      function changeLanguage(l) {
+        currentLanguage = l;
+        updateLanguage();
+        updateUI();
+      }
+      function updateLanguage() {
+        let l = languages[currentLanguage];
+        document.querySelector("header h1").innerText = l.title;
+        document.getElementById("money-label").innerText = l.money + ": $";
+        document.getElementById("crops-label").innerText = l.minerals + ": ";
+        document.getElementById("sell-container").querySelector("button").innerText = l.sellMinerals;
+        document.getElementById("tab-harvest").innerText = l.mining;
+        document.getElementById("tab-auto").innerText = l.auto;
+        document.getElementById("tab-purchases").innerText = l.purchases;
+        document.getElementById("tab-fields").innerText = l.mines;
+        document.getElementById("tab-config").innerText = l.config;
+        document.getElementById("config-title").innerText = l.config;
+        document.getElementById("language-label").innerText = l.language + ":";
+        document.getElementById("sound-toggle").innerText = soundEnabled ? l.deactivateSound : l.activateSound;
+        document.getElementById("auto-production-display").innerText = l.autoProduction + ": " + getAutoProduction() + " " + l.minerals + "/s";
+        document.getElementById("topPlayersBtn").innerText = l.topPlayers;
+      }
+      function getCropName(c) {
+        return (currentLanguage === "es" && cropTranslations[c]) ? cropTranslations[c] : c.charAt(0).toUpperCase() + c.slice(1);
+      }
+      function getTotalCropsCount() {
+        let t = 0;
+        for (let k in inventory) {
+          t += inventory[k];
+        }
+        return t;
+      }
+      function getAutoProduction() {
+        let a = upgrades.minero.count * (upgrades.minero.production || 0)
+              + upgrades.excavadora.count * (upgrades.excavadora.production || 0)
+              + upgrades.robot.count * (upgrades.robot.production || 0);
+        let f = 0;
+        for (let k in mines) {
+          let m = mines[k];
+          f += m.count * m.baseProduction * m.productionMultiplier;
+        }
+        let t = a + f;
+        if (Date.now() < sprinklerBuffEndTime) t *= 2;
+        return t;
+      }
+      function updateUI() {
+        document.getElementById("money-count").innerText = money;
+        document.getElementById("crops-count").innerText = Math.floor(getTotalCropsCount());
+        updateInventoryPanel();
+        updatePricesPanel();
+        updateBoostersDisplay();
+        updateUpgradesDisplay();
+        updateAutoUpgradesDisplay();
+        updatePurchaseUpgradesDisplay();
+        updateFieldsDisplay();
+        document.getElementById("auto-production-display").innerText = languages[currentLanguage].autoProduction + ": " + getAutoProduction() + " " + languages[currentLanguage].minerals + "/s";
+      }
+      function updateInventoryPanel() {
+        let l = languages[currentLanguage];
+        const invPanel = document.getElementById("inventory-panel");
+        let html = "<strong>" + l.inventory + ":</strong> ";
+        for (let crop in inventory) {
+          html += `${getCropName(crop)}: ${Math.floor(inventory[crop])} &nbsp;`;
+        }
+        invPanel.innerHTML = html;
+      }
+      function updatePricesPanel() {
+        const pricesPanel = document.getElementById("prices-panel");
+        let html = "<strong></strong> ";
+        for (let crop in cropPrices) {
+          html += `${getCropName(crop)}: $${cropPrices[crop]} &nbsp;`;
+        }
+        pricesPanel.innerHTML = html;
+      }
+      function updateBoostersDisplay() {
+        const container = document.getElementById("boosters-container");
+        let now = Date.now();
+        let html = "";
+        if (tractorBuffEndTime > now) {
+          let seconds = Math.ceil((tractorBuffEndTime - now) / 1000);
+          html += `<p>${upgrades.drill.name[currentLanguage]}: ${seconds}s</p>`;
+        }
+        if (sprinklerBuffEndTime > now) {
+          let seconds = Math.ceil((sprinklerBuffEndTime - now) / 1000);
+          html += `<p>${upgrades.laser.name[currentLanguage]}: ${seconds}s</p>`;
+        }
+        container.innerHTML = html;
+      }
+
+      /******************************
+       * ACTUALIZACIÓN DE UI (UPGRADES, ETC.)
+       ******************************/
+      function updateUpgradesDisplay() {
+        let l = languages[currentLanguage];
+        const clickGrid = document.getElementById("click-upgrades");
+        clickGrid.innerHTML = "";
+        for (let key in upgrades) {
+          if (upgrades[key].category === "click") {
+            const upg = upgrades[key];
+            const card = document.createElement("div");
+            card.className = "card";
+            let yieldIfBought = baseClickValue + ((upg.count + 1) * upg.clickBonus);
+            card.innerHTML = `
+              <h3>${upg.name[currentLanguage]}</h3>
+              <p>${l.cost} ${upg.cost} ${l.moneyUnit}</p>
+              <p>${l.bonus} +${upg.clickBonus} por cosecha</p>
+              <p>${l.owned} ${upg.count}</p>
+              <p>${l.currentClickYield} ${baseClickValue + (upg.count * upg.clickBonus)} ${l.clickUnit}</p>
+              <p>${l.nextUpgradeYield} ${yieldIfBought} ${l.clickUnit}</p>
+              <button class="buy-btn ${key==='herramienta' ? 'big-upgrade-btn' : ''}" onclick="buyUpgrade('${key}')">${l.buy}</button>
+            `;
+            clickGrid.appendChild(card);
+          }
+        }
+      }
+      function updateAutoUpgradesDisplay() {
+        let l = languages[currentLanguage];
+        const autoGrid = document.getElementById("auto-upgrades");
+        if (autoGrid) {
+          autoGrid.innerHTML = "";
+          for (let key in upgrades) {
+            if (upgrades[key].category === "auto") {
+              const upg = upgrades[key];
+              const card = document.createElement("div");
+              card.className = "card";
+              let yieldPerUnit = upg.production;
+              card.innerHTML = `
+                <h3>${upg.name[currentLanguage]}</h3>
+                <p>${l.cost} ${upg.cost} ${l.moneyUnit}</p>
+                <p>${l.production} +${upg.production} ${l.perEach}</p>
+                <p>${l.owned} ${upg.count}</p>
+                <p>${l.totalYield} ${upg.count * upg.production} ${l.perEach}</p>
+                <p>${l.ifBought} +${yieldPerUnit} ${l.perEach}</p>
+                <button class="buy-btn" onclick="buyUpgrade('${key}')">${l.buy}</button>
+              `;
+              autoGrid.appendChild(card);
+            }
+          }
+        }
+      }
+      function updatePurchaseUpgradesDisplay() {
+        let l = languages[currentLanguage];
+        const purchaseGrid = document.getElementById("purchase-upgrades");
+        if (purchaseGrid) {
+          purchaseGrid.innerHTML = "";
+          for (let key in upgrades) {
+            if (upgrades[key].category === "purchase") {
+              let upg = upgrades[key];
+              const card = document.createElement("div");
+              card.className = "card";
+              let effectDescription = "";
+              switch(key) {
+                case "tnt": effectDescription = l.tntEffect; break;
+                case "drill": effectDescription = l.drillEffect; break;
+                case "laser": effectDescription = l.laserEffect; break;
+                case "rocket": effectDescription = l.rocketEffect; break;
+              }
+              let displayBonus = "";
+              if (key === "tnt" || key === "rocket") {
+                let bonus = upg.effectMultiplier;
+                if (upg.count >= upg.threshold) {
+                  bonus = Math.floor(bonus * upg.extraMultiplier);
+                }
+                displayBonus = l.bonus + " " + bonus + " " + l.minerals;
+              } else if (key === "drill") {
+                displayBonus = "Potenciador: Duplica el rendimiento por cosecha durante 30 seg";
+              } else if (key === "laser") {
+                displayBonus = "Potenciador: Duplica la producción automática durante 15 seg";
+              }
+              card.innerHTML = `
+                <h3>${upg.name[currentLanguage]}</h3>
+                <p>${l.cost} ${upg.cost} ${l.moneyUnit}</p>
+                <p>${l.owned} ${upg.count}</p>
+                <p>${displayBonus}</p>
+                <p>${effectDescription}</p>
+                <button class="buy-btn" onclick="buyUpgrade('${key}')">${l.buy}</button>
+                <button class="use-btn" onclick="useUpgrade('${key}')">${l.use}</button>
+              `;
+              purchaseGrid.appendChild(card);
+            }
+          }
+        }
+      }
+      function updateFieldsDisplay() {
+        let l = languages[currentLanguage];
+        const fieldsGrid = document.getElementById("fields-grid");
+        if (fieldsGrid) {
+          fieldsGrid.innerHTML = "";
+          for (let key in mines) {
+            let f = mines[key];
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+              <h3>${f.name[currentLanguage]}</h3>
+              <p>Tipo: ${getCropName(f.mineral)}</p>
+              <p>${l.cost} ${f.cost} ${l.moneyUnit}</p>
+              <p>${l.owned} ${f.count}</p>
+              <p>${l.production} ${f.baseProduction} ${l.perEach}</p>
+              <p>${l.upgradeLevel} ${f.upgradeLevel}</p>
+              <p>${l.upgradeCost} ${f.upgradeCost} ${l.moneyUnit}</p>
+              <p>${l.multiplier} x${f.productionMultiplier.toFixed(2)}</p>
+              <p>${l.totalYield} ${f.count * f.baseProduction * f.productionMultiplier} ${l.perEach}</p>
+              <button class="buy-btn" onclick="buyMine('${key}')">${l.buyMine}</button>
+              <button class="upgrade-btn" onclick="upgradeMine('${key}')">${l.upgradeMine}</button>
+            `;
+            fieldsGrid.appendChild(card);
+          }
+        }
+      }
+
+      /******************************
+       * FUNCIONES DE JUEGO
+       ******************************/
+      function harvestCrops() {
+        let totalWeight = 0;
+        for (let key in mines) {
+          totalWeight += mines[key].count * mines[key].productionMultiplier;
+        }
+        let chosenField = null;
+        if (totalWeight > 0) {
+          let r = Math.random() * totalWeight;
+          for (let key in mines) {
+            let weight = mines[key].count * mines[key].productionMultiplier;
+            if (r < weight) {
+              chosenField = mines[key];
+              break;
+            }
+            r -= weight;
+          }
+        }
+        if (!chosenField) {
+          chosenField = { mineral:"wheat", productionMultiplier:1 };
+        }
+        let bonus = upgrades.herramienta.count * upgrades.herramienta.clickBonus;
+        let multiplier = chosenField.productionMultiplier;
+        if (Date.now() < tractorBuffEndTime) {
+          multiplier *= 2;
+        }
+        let yieldAmount = (baseClickValue + bonus) * multiplier;
+        inventory[chosenField.mineral] += yieldAmount;
+        playSound(soundClick);
+        let harvestButton = document.querySelector(".mine-button");
+        if (harvestButton) {
+          harvestButton.classList.add("pulse");
+          setTimeout(() => { harvestButton.classList.remove("pulse"); }, 300);
+        }
+        updateUI();
+      }
+      function autoMine() {
+        let production = (upgrades.minero.count * (upgrades.minero.production || 0))
+                       + (upgrades.excavadora.count * (upgrades.excavadora.production || 0))
+                       + (upgrades.robot.count * (upgrades.robot.production || 0));
+        inventory.wheat += production;
+        updateUI();
+      }
+      function autoMineFields() {
+        for (let key in mines) {
+          let f = mines[key];
+          let prod = f.count * f.baseProduction * f.productionMultiplier;
+          inventory[f.mineral] += prod;
+        }
+        updateUI();
+      }
+      function sellCrops() {
+        let totalSaleValue = 0;
+        for (let crop in inventory) {
+          totalSaleValue += inventory[crop] * cropPrices[crop];
+          inventory[crop] = 0;
+        }
+        money += totalSaleValue;
+        updateUI();
+      }
+      function buyUpgrade(key) {
+        const upg = upgrades[key];
+        if (money >= upg.cost) {
+          money -= upg.cost;
+          upg.count++;
+          upg.cost = Math.floor(upg.cost * 1.15);
+          if (key === "robot") {
+            playSound(soundRobot);
+          } else {
+            playSound(soundPurchase);
+          }
+          updateUI();
+        }
+      }
+      function useUpgrade(key) {
+        const upg = upgrades[key];
+        if (upg.count > 0) {
+          switch (key) {
+            case "tnt":
+              let bonusTNT = upg.effectMultiplier;
+              if (upg.count >= upg.threshold) {
+                bonusTNT = Math.floor(bonusTNT * upg.extraMultiplier);
+              }
+              inventory.wheat += bonusTNT;
+              break;
+            case "drill":
+              if (Date.now() < tractorBuffEndTime) {
+                tractorBuffEndTime += 30000;
+              } else {
+                tractorBuffEndTime = Date.now() + 30000;
+              }
+              break;
+            case "laser":
+              if (Date.now() < sprinklerBuffEndTime) {
+                sprinklerBuffEndTime += 15000;
+              } else {
+                sprinklerBuffEndTime = Date.now() + 15000;
+              }
+              break;
+            case "rocket":
+              let bonusRocket = upg.effectMultiplier;
+              if (upg.count >= upg.threshold) {
+                bonusRocket = Math.floor(bonusRocket * upg.extraMultiplier);
+              }
+              inventory.wheat += bonusRocket;
+              break;
+          }
+          upg.count--;
+          if (key === "tnt") {
+            playSound(soundTNT);
+          } else if (key === "rocket") {
+            playSound(soundPurchase);
+          } else {
+            playSound(soundBoost);
+          }
+          updateUI();
+        }
+      }
+      function buyMine(key) {
+        let f = mines[key];
+        if (money >= f.cost) {
+          money -= f.cost;
+          f.count++;
+          f.cost = Math.floor(f.cost * 1.15);
+          playSound(soundPurchase);
+          updateUI();
+        }
+      }
+      function upgradeMine(key) {
+        let f = mines[key];
+        if (money >= f.upgradeCost) {
+          money -= f.upgradeCost;
+          f.upgradeLevel++;
+          f.productionMultiplier = 1 + f.upgradeLevel * 0.5;
+          f.upgradeCost = Math.floor(f.upgradeCost * 1.5);
+          playSound(soundPurchase);
+          updateUI();
+        }
+      }
+      function showSection(section) {
+        const sections = ["harvest", "auto", "purchases", "fields", "config"];
+        sections.forEach(sec => {
+          document.getElementById("section-" + sec).classList.remove("active");
+          document.getElementById("tab-" + sec).classList.remove("active");
+        });
+        document.getElementById("section-" + section).classList.add("active");
+        document.getElementById("tab-" + section).classList.add("active");
+      }
+
+      /******************************
+       * GUARDAR Y CARGAR JUEGO
+       ******************************/
+      function saveGame() {
+        const saveData = {
+          money: money,
+          inventory: inventory,
+          upgrades: upgrades,
+          mines: mines,
+          lastUpdate: Date.now()
+        };
+        localStorage.setItem("TheIdleGameFarm_Save", JSON.stringify(saveData));
+        localStorage.setItem("TheIdleGameFarm_language", currentLanguage);
+      }
+      function loadGame() {
+        const saveData = JSON.parse(localStorage.getItem("TheIdleGameFarm_Save"));
+        if (saveData) {
+          money = (typeof saveData.money !== "undefined") ? saveData.money : 0;
+          inventory = saveData.inventory || { wheat:0, corn:0, rice:0, tomato:0, carrot:0, potato:0 };
+          for (let key in saveData.upgrades) {
+            if (upgrades[key]) {
+              upgrades[key].count = saveData.upgrades[key].count;
+              upgrades[key].cost = saveData.upgrades[key].cost;
+            }
+          }
+          for (let key in saveData.mines) {
+            if (mines[key]) {
+              mines[key].count = saveData.mines[key].count;
+              mines[key].cost = saveData.mines[key].cost;
+              mines[key].upgradeLevel = saveData.mines[key].upgradeLevel;
+              mines[key].upgradeCost = saveData.mines[key].upgradeCost;
+              mines[key].productionMultiplier = saveData.mines[key].productionMultiplier;
+            }
+          }
+          let lastUpdate = saveData.lastUpdate;
+          if (lastUpdate) {
+            let now = Date.now();
+            let diffSeconds = Math.floor((now - lastUpdate) / 1000);
+            let offlineProduction = (upgrades.minero.count * (upgrades.minero.production || 0))
+                                  + (upgrades.excavadora.count * (upgrades.excavadora.production || 0))
+                                  + (upgrades.robot.count * (upgrades.robot.production || 0));
+            inventory.wheat += offlineProduction * diffSeconds;
+            for (let key in mines) {
+              let f = mines[key];
+              let prod = f.count * f.baseProduction * f.productionMultiplier;
+              inventory[f.mineral] += prod * diffSeconds;
+            }
+          }
+        }
+        const savedLanguage = localStorage.getItem("TheIdleGameFarm_language");
+        if (savedLanguage) {
+          currentLanguage = savedLanguage;
+        }
+        updateLanguage();
+        updateUI();
+      }
+
+      /******************************
+       * GESTIÓN DE CUENTA
+       ******************************/
+      const serverUrl = "https://roblegamesserver.onrender.com";
+      let currentUser = null;
+      const accountBtn = document.getElementById("accountBtn"),
+            topPlayersBtn = document.getElementById("topPlayersBtn"),
+            accountModal = document.getElementById("accountModal"),
+            accountModalContent = document.getElementById("accountModalContent");
+
+      accountBtn.addEventListener("click", () => {
+        if (currentUser) {
+          showLoggedInView();
+        } else {
+          showInitialAccountOptions();
+        }
+      });
+      topPlayersBtn.addEventListener("click", showTopPlayers);
+
+      function showInitialAccountOptions() {
+        accountModalContent.innerHTML = `
+          <h2>${languages[currentLanguage].accountManagement} 👤</h2>
+          <div id="modalMessage"></div>
+          <button id="showCreateAccountBtn" style="background-color:#28a745;">📝 ${languages[currentLanguage].createAccount}</button>
+          <button id="showLoginBtn" style="background-color:#007bff;">🔑 ${languages[currentLanguage].login}</button>
+          <br><br>
+          <button id="closeModalBtn" class="secondary-btn">�?${languages[currentLanguage].close}</button>
+        `;
+        accountModal.style.display = "block";
+        document.getElementById("showCreateAccountBtn").addEventListener("click", showCreateAccountForm);
+        document.getElementById("showLoginBtn").addEventListener("click", showLoginForm);
+        document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+      }
+      function showCreateAccountForm() {
+        accountModalContent.innerHTML = `
+          <h2>${languages[currentLanguage].createAccount} 📝</h2>
+          <div id="modalMessage"></div>
+          <input type="text" id="caUsername" placeholder="${languages[currentLanguage].accountUsernamePlaceholder}">
+          <input type="password" id="caPassword" placeholder="${languages[currentLanguage].accountPasswordPlaceholder}">
+          <br>
+          <button id="confirmCreateBtn">${languages[currentLanguage].createAccount}</button>
+          <button id="cancelCreateBtn" class="cancel-btn">${languages[currentLanguage].cancel}</button>
+        `;
+        document.getElementById("confirmCreateBtn").addEventListener("click", createAccount);
+        document.getElementById("cancelCreateBtn").addEventListener("click", closeModal);
+      }
+      function showLoginForm() {
+        accountModalContent.innerHTML = `
+          <h2>${languages[currentLanguage].login} 🔑</h2>
+          <div id="modalMessage"></div>
+          <input type="text" id="liUsername" placeholder="${languages[currentLanguage].accountUsernamePlaceholder}">
+          <input type="password" id="liPassword" placeholder="${languages[currentLanguage].accountPasswordPlaceholder}">
+          <br>
+          <button id="confirmLoginBtn">${languages[currentLanguage].login}</button>
+          <button id="cancelLoginBtn" class="cancel-btn">${languages[currentLanguage].cancel}</button>
+        `;
+        document.getElementById("confirmLoginBtn").addEventListener("click", login);
+        document.getElementById("cancelLoginBtn").addEventListener("click", closeModal);
+      }
+      function showLoggedInView() {
+        accountModalContent.innerHTML = `
+          <h2>${languages[currentLanguage].loggedIn} 👤</h2>
+          <div id="modalMessage"></div>
+          <p>${languages[currentLanguage].accountUserLabel} <strong>${currentUser}</strong></p>
+          <button id="logOutBtn" style="background-color:#dc3545;">🚪 ${languages[currentLanguage].logout}</button>
+          <button id="closeLoggedInBtn" class="secondary-btn">�?${languages[currentLanguage].close}</button>
+        `;
+        accountModal.style.display = "block";
+        document.getElementById("logOutBtn").addEventListener("click", logOut);
+        document.getElementById("closeLoggedInBtn").addEventListener("click", closeModal);
+      }
+      function closeModal() {
+        accountModal.style.display = "none";
+      }
+      function displayModalMessage(msg, color) {
+        const m = document.getElementById("modalMessage");
+        if (m) {
+          m.textContent = msg;
+          m.style.color = color || "black";
+        }
+      }
+
+      // Crear cuenta
+      function createAccount() {
+        const u = document.getElementById("caUsername").value.trim();
+        const p = document.getElementById("caPassword").value;
+        if (!u || !p) {
+          displayModalMessage(languages[currentLanguage].accountManagement + " - " + languages[currentLanguage].cancel, "red");
+          return;
+        }
+        fetch(serverUrl + "/createAccountTheIdleGameFarm", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({ username:u, password:p, data:{ money, inventory, upgrades, mines } })
+        })
+        .then(r => r.json())
+        .then(r => {
+          if (r.success) {
+            displayModalMessage(languages[currentLanguage].createAccount + " " + languages[currentLanguage].loggedIn + " 🎉", "green");
+            currentUser = u;
+            setTimeout(closeModal, 2000);
+          } else {
+            displayModalMessage(r.message, "red");
+          }
+        })
+        .catch(e => {
+          displayModalMessage("Error " + languages[currentLanguage].createAccount + ".", "red");
+        });
+      }
+      // Login
+      function login() {
+        const u = document.getElementById("liUsername").value.trim();
+        const p = document.getElementById("liPassword").value;
+        if (!u || !p) {
+          displayModalMessage("Please enter username and password.", "red");
+          return;
+        }
+        fetch(serverUrl + "/loginTheIdleGameFarm", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({ username:u, password:p })
+        })
+        .then(r => r.json())
+        .then(r => {
+          if (r.success) {
+            displayModalMessage(languages[currentLanguage].login + " " + languages[currentLanguage].loggedIn + " 🎉", "green");
+            currentUser = u;
+            if (r.data) {
+              money = r.data.money;
+              inventory = r.data.inventory;
+              for (let key in r.data.upgrades) {
+                if (upgrades[key]) {
+                  upgrades[key].count = r.data.upgrades[key].count;
+                  upgrades[key].cost = r.data.upgrades[key].cost;
+                }
+              }
+              for (let key in r.data.mines) {
+                if (mines[key]) {
+                  mines[key].count = r.data.mines[key].count;
+                  mines[key].cost = r.data.mines[key].cost;
+                  mines[key].upgradeLevel = r.data.mines[key].upgradeLevel;
+                  mines[key].upgradeCost = r.data.mines[key].upgradeCost;
+                  mines[key].productionMultiplier = r.data.mines[key].productionMultiplier;
+                }
+              }
+              updateUI();
+              saveGame();
+            }
+            setTimeout(closeModal, 2000);
+          } else {
+            displayModalMessage(r.message, "red");
+          }
+        })
+        .catch(e => {
+          displayModalMessage("Error " + languages[currentLanguage].login + ".", "red");
+        });
+      }
+
+      // Cerrar sesión
+      function logOut() {
+        currentUser = null;
+        money = 0;
+        inventory = { wheat:0, corn:0, rice:0, tomato:0, carrot:0, potato:0 };
+
+        // Reiniciamos upgrades y mines a su estado original (costos incluidos)
+        for (let key in upgrades) {
+          upgrades[key].count = initialUpgrades[key].count;
+          upgrades[key].cost = initialUpgrades[key].cost;
+          // Si hubiera más propiedades (clickBonus, production, etc.), se copian también si quieres resetearlas
+        }
+        for (let key in mines) {
+          mines[key].count = initialMines[key].count;
+          mines[key].cost = initialMines[key].cost;
+          mines[key].upgradeLevel = initialMines[key].upgradeLevel;
+          mines[key].upgradeCost = initialMines[key].upgradeCost;
+          mines[key].productionMultiplier = initialMines[key].productionMultiplier;
+        }
+
+        updateUI();
+        saveGame();
+        displayModalMessage(languages[currentLanguage].logout + " " + languages[currentLanguage].loggedIn + " " + languages[currentLanguage].close, "green");
+        setTimeout(closeModal, 2000);
+      }
+
+      // Actualización periódica al servidor si hay sesión activa
+      function updateGameOnServer() {
+        if (!currentUser) return;
+        fetch(serverUrl + "/updateDataTheIdleGameFarm", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({ username: currentUser, data:{ money, inventory, upgrades, mines } })
+        })
+        .then(r => r.json())
+        .then(r => {
+          if (!r.success) {
+            console.log("Error:", r.message);
+          }
+        })
+        .catch(e => {
+          console.log("Error en la conexión al servidor.");
+        });
+      }
+      setInterval(() => { if (currentUser) updateGameOnServer(); }, 1000);
+
+      // Mostrar Top Players con username
+      function showTopPlayers() {
+        let fetchUrl = serverUrl + "/getTopPlayersTheIdleGameFarm";
+        if (currentUser) {
+          fetchUrl += "?username=" + encodeURIComponent(currentUser);
+        }
+        fetch(fetchUrl, { method:"GET" })
+        .then(r => r.json())
+        .then(r => {
+          if (r.success) {
+            let l = languages[currentLanguage],
+                rankToShow = (r.myRank) ? r.myRank : "-";
+            let h = `<h2>${l.topPlayers.toUpperCase()}</h2>
+                     <p>${l.yourPosition.toUpperCase()} ${rankToShow}</p>
+                     <ol>`;
+            for (let i = 0; i < Math.min(r.topUsers.length, 100); i++) {
+              let p = r.topUsers[i];
+              h += `<li>${p.username.toUpperCase()}: $${p.money}</li>`;
+            }
+            h += `</ol>
+                  <button id="closeTopPlayersBtn" class="secondary-btn">${l.close}</button>`;
+            accountModalContent.innerHTML = h;
+            accountModal.style.display = "block";
+            document.getElementById("closeTopPlayersBtn").addEventListener("click", closeModal);
+          } else {
+            displayModalMessage(r.message, "red");
+          }
+        })
+        .catch(e => {
+          displayModalMessage("Error fetching top players.", "red");
+        });
+      }
+
+      /******************************
+       * INICIALIZACIÓN
+       ******************************/
+      setInterval(saveGame, 5000);
+      window.onbeforeunload = saveGame;
+      setInterval(autoMine, 1000);
+      setInterval(autoMineFields, 1000);
+      loadGame();
+      document.getElementById("splash-screen").addEventListener("click",function(){ this.style.display="none"; });
+      updateLanguage();
+    </script>
+  </body>
+</html>
