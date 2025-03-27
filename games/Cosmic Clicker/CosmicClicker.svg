@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+  <rect width="300" height="200" fill="#0f0f23"/>
+  <circle cx="150" cy="100" r="40" fill="#8a2be2"/>
+  <circle cx="150" cy="100" r="30" fill="#4b0082"/>
+  <circle cx="150" cy="100" r="20" fill="#9370db"/>
+  <circle cx="150" cy="100" r="10" fill="#e6e6fa"/>
+  <circle cx="180" cy="70" r="5" fill="white"/>
+  <circle cx="120" cy="130" r="5" fill="white"/>
+  <circle cx="200" cy="120" r="3" fill="white"/>
+  <circle cx="100" cy="80" r="3" fill="white"/>
+  <circle cx="160" cy="150" r="3" fill="white"/>
+  <circle cx="90" cy="160" r="3" fill="white"/>
+  <circle cx="210" cy="90" r="3" fill="white"/>
+  <text x="150" y="180" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Cosmic Clicker</text>
+</svg>
