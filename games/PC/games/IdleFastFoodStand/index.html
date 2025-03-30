@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Idle Bakery Game</title>
+  <!-- Fuente para el título -->
+  <link href="https://fonts.googleapis.com/css?family=Pacifico&display=swap" rel="stylesheet">
+  <style>
+    /* Estilos generales */
+    * { user-select: none; }
+    body {
+      background: linear-gradient(135deg, #0f0f0f, #363333);
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      color: #333;
+      overflow-y: scroll; /* Permite desplazarse sin mostrar la barra (en Webkit se oculta) */
+    }
+    ::-webkit-scrollbar { display: none; }
+    header {
+      padding: 10px;
+      background: #292626;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    #gameTitle {
+      font-family: 'Pacifico', cursive;
+      font-size: 2.8em;
+      margin: 10px 0;
+      color: #ffffff;
+      text-shadow: 2px 2px 4px #262c38;
+    }
+    #moneyDisplay, #autoEarningsDisplay {
+      font-size: 1.5em;
+      margin: 5px;
+      font-weight: bold;
+    color: white;
+    }
+    #configButton {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #131414;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    #configMenu {
+      display: none;
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      background: #131414;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    }
+    /* Navegación */
+    nav#tabNav {
+      margin: 10px 0;
+    }
+    nav#tabNav button {
+      background-color: #131414;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin: 0 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    nav#tabNav button.active {
+      background-color: #2d6121;
+    }
+    main#tabContent { padding: 10px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    /* Grid de panes por defecto */
+    .bread-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      justify-items: center;
+      margin-bottom: 20px;
+    }
+    /* Tarjeta de bread */
+    .bread-card {
+      width: 150px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      background: #0b9e06;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.15);
+    }
+    .bread-img {
+      width: 130px;
+      height: 110px;
+      object-fit: contain;
+      border-radius: 3px;
+      transition: transform 0.15s;
+      cursor: pointer;
+      display: block;
+      margin: 0 auto;
+    }
+    .bread-img:hover { transform: scale(1.05); }
+    .grayscale { filter: grayscale(100%); }
+    .bread-info {
+      margin-top: 5px;
+      font-size: 0.8em;
+    }
+    .bread-info p { margin: 2px 0; }
+    button {
+      background-color: #131414;
+      color: #fff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.8em;
+      transition: background-color 0.15s;
+      margin: 2px;
+    }
+    button:hover { background-color: #131414; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    /* Estadísticas */
+    .stats-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    color: white;
+    }
+    .stats-list li {
+      display: flex;
+      align-items: center;
+      background: #131414;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 5px;
+    }
+    .stats-list li img {
+      width: 40px;
+      height: auto;
+      margin-right: 5px;
+    }
+    .stats-container h2 {
+      margin: 10px 0 5px;
+      color: white;
+    }
+    /* Media queries para pantallas pequeñas */
+    @media (max-width: 600px) {
+      .bread-card { width: 120px; }
+      .bread-img { width: 110px; height: 90px; }
+      #mainSection .bread-grid,
+      #unlockSection .bread-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1 id="gameTitle">Idle Fast Food Stand</h1>
+    <div id="moneyDisplay">Money: $0</div>
+    <div id="autoEarningsDisplay">Total automatic earnings per second: $0</div>
+    <button id="configButton" onclick="toggleConfigMenu()">Config</button>
+    <div id="configMenu">
+      <button onclick="setLanguage('en')">English</button>
+      <button onclick="setLanguage('es')">Español</button>
+    </div>
+  </header>
+  <!-- Navegación -->
+  <nav id="tabNav">
+    <button id="tabMain" class="active" onclick="showTab('main')"></button>
+    <button id="tabStats" onclick="showTab('stats')"></button>
+    <button id="tabShop" onclick="showTab('shop')"></button>
+    <button id="tabUnlock" onclick="showTab('unlock')"></button>
+  </nav>
+  <!-- Contenido -->
+  <main id="tabContent">
+    <!-- Main Section: breads desbloqueados -->
+    <section id="mainSection" class="tab-content active"></section>
+    <!-- Statistics Section -->
+    <section id="statsSection" class="tab-content"></section>
+    <!-- Shop Section -->
+    <section id="shopSection" class="tab-content"></section>
+    <!-- Unlock Section: breads bloqueados -->
+    <section id="unlockSection" class="tab-content"></section>
+  </main>
+  <script>
+    // Configuración de idiomas
+    let currentLanguage = "en";
+    const languages = {
+      en: {
+        title: "Idle Fast Food Stand",
+        money: "Money: $",
+        autoEarnings: "Total automatic earnings per second: $",
+        leftPanel: "Earnings per Second",
+        rightPanel: "Total Sales",
+        buyHelper: "Buy Helper",
+        improveHelpers: "Improve Helpers",
+        buyTruck: "Buy Truck Upgrade",
+        unlockBreadPrefix: "Unlock: $",
+        unlockBtn: "Unlock",
+        restocking: "Restocking in: ",
+        helperCountText: "Helpers: ",
+        helperUpgradeCountText: "Helper Upgrades: ",
+        truckCountText: "Trucks: ",
+        tabMain: "Main",
+        tabStats: "Statistics",
+        tabShop: "Shop",
+        tabUnlock: "Unlock Food"
+      },
+      es: {
+        title: "Idle Fast Food Stand",
+        money: "Dinero: $",
+        autoEarnings: "Ganancias automáticas totales por segundo: $",
+        leftPanel: "Ganancias por Segundo",
+        rightPanel: "Ventas Totales",
+        buyHelper: "Comprar Ayudante",
+        improveHelpers: "Mejorar Ayudantes",
+        buyTruck: "Comprar mejora de camión",
+        unlockBreadPrefix: "Desbloquear: $",
+        unlockBtn: "Desbloquear",
+        restocking: "Reposición en: ",
+        helperCountText: "Ayudantes: ",
+        helperUpgradeCountText: "Mejoras de Ayudantes: ",
+        truckCountText: "Camiones: ",
+        tabMain: "Principal",
+        tabStats: "Estadísticas",
+        tabShop: "Compras",
+        tabUnlock: "Desbloquear Alimentos"
+      }
+    };
+
+    // Variables del juego
+    let money = 0;
+    let helperCount = 0;
+    let helperCost = 3500;
+    let helperSpeedUpgradeCount = 0;
+    const maxHelperSpeedUpgrade = 40;
+    let helperSpeedUpgradeCost = 4500;
+    let truckUpgradeCount = 0;
+    const maxTruckUpgrade = 40;
+    let truckUpgradeCost = 5000;
+
+    /* Definición de los breads:
+       - Bread1 ahora también es mejorable (aunque es ilimitado, se mostrará "∞" en el contador).
+       - Bread2 a Bread9 tienen un clickLimit de 20.
+    */
+	const breads = [
+	      {
+	        id: 1,
+	        unlocked: true,
+	        unlockCost: 0,
+	        saleValue: 100,
+	        unlimited: true,
+	        clickCount: 0,
+	        upgradeCost: 200,
+	        imgSrc: "1.png",
+	        totalSales: 0,
+	        autoSaleAccumulator: 0
+	      },
+	      {
+	        id: 2,
+	        unlocked: false,
+	        unlockCost: 50000,
+	        saleValue: 150,
+	        clickLimit: 20,
+	        clickCount: 0,
+	        cooldown: 20,
+	        cooldownRemaining: 0,
+	        isCoolingDown: false,
+	        upgradeCost: 100,
+	        imgSrc: "2.png",
+	        totalSales: 0,
+	        autoSaleAccumulator: 0
+	      },
+	      {
+	        id: 3,
+	        unlocked: false,
+	        unlockCost: 100000,
+	        saleValue: 200,
+	        clickLimit: 20,
+	        clickCount: 0,
+	        cooldown: 20,
+	        cooldownRemaining: 0,
+	        isCoolingDown: false,
+	        upgradeCost: 150,
+	        imgSrc: "3.png",
+	        totalSales: 0,
+	        autoSaleAccumulator: 0
+	      },
+	      {
+	        id: 4,
+	        unlocked: false,
+	        unlockCost: 150000,
+	        saleValue: 250,
+	        clickLimit: 20,
+	        clickCount: 0,
+	        cooldown: 20,
+	        cooldownRemaining: 0,
+	        isCoolingDown: false,
+	        upgradeCost: 200,
+	        imgSrc: "4.png",
+	        totalSales: 0,
+	        autoSaleAccumulator: 0
+	      },
+	      {
+	        id: 5,
+	        unlocked: false,
+	        unlockCost: 200000,
+	        saleValue: 300,
+	        clickLimit: 20,
+	        clickCount: 0,
+	        cooldown: 20,
+	        cooldownRemaining: 0,
+	        isCoolingDown: false,
+	        upgradeCost: 250,
+	        imgSrc: "5.png",
+	        totalSales: 0,
+	        autoSaleAccumulator: 0
+	      },
+	      {
+	        id: 6,
+	        unlocked: false,
+	        unlockCost: 250000,
+	        saleValue: 350,
+	        clickLimit: 20,
+	        clickCount: 0,
+	        cooldown: 20,
+	        cooldownRemaining: 0,
+	        isCoolingDown: false,
+	        upgradeCost: 300,
+	        imgSrc: "6.png",
+	        totalSales: 0,
+	        autoSaleAccumulator: 0
+	      },
+	      {
+	        id: 7,
+	        unlocked: false,
+	        unlockCost: 300000,
+	        saleValue: 400,
+	        clickLimit: 20,
+	        clickCount: 0,
+	        cooldown: 20,
+	        cooldownRemaining: 0,
+	        isCoolingDown: false,
+	        upgradeCost: 350,
+	        imgSrc: "7.png",
+	        totalSales: 0,
+	        autoSaleAccumulator: 0
+	      },
+	      {
+	        id: 8,
+	        unlocked: false,
+	        unlockCost: 350000,
+	        saleValue: 450,
+	        clickLimit: 20,
+	        clickCount: 0,
+	        cooldown: 20,
+	        cooldownRemaining: 0,
+	        isCoolingDown: false,
+	        upgradeCost: 400,
+	        imgSrc: "8.png",
+	        totalSales: 0,
+	        autoSaleAccumulator: 0
+	      },
+	      {
+	        id: 9,
+	        unlocked: false,
+	        unlockCost: 400000,
+	        saleValue: 500,
+	        clickLimit: 20,
+	        clickCount: 0,
+	        cooldown: 20,
+	        cooldownRemaining: 0,
+	        isCoolingDown: false,
+	        upgradeCost: 450,
+	        imgSrc: "9.png",
+	        totalSales: 0,
+	        autoSaleAccumulator: 0
+	      }
+	    ];
+
+    // Funciones para reproducir sonidos
+    function playClickSound() { new Audio("click.mp3").play(); }
+    function playPurchaseSound() { new Audio("compra.mp3").play(); }
+
+    // Guardar y cargar el juego
+    function saveGame() {
+      const state = {
+        money,
+        helperCount,
+        helperCost,
+        helperSpeedUpgradeCount,
+        helperSpeedUpgradeCost,
+        truckUpgradeCount,
+        truckUpgradeCost,
+        breads,
+        lastUpdateTime: Date.now()
+      };
+      localStorage.setItem("IdleFastFoodStand_saveGame000_1", JSON.stringify(state));
+    }
+    function loadGame() {
+      const saved = localStorage.getItem("IdleFastFoodStand_saveGame000_1");
+      if (saved) {
+        const state = JSON.parse(saved);
+        money = state.money || 0;
+        helperCount = state.helperCount || 0;
+        helperCost = state.helperCost || 1000;
+        helperSpeedUpgradeCount = state.helperSpeedUpgradeCount || 0;
+        helperSpeedUpgradeCost = state.helperSpeedUpgradeCost || 500;
+        truckUpgradeCount = state.truckUpgradeCount || 0;
+        truckUpgradeCost = state.truckUpgradeCost || 500;
+        if (state.breads && Array.isArray(state.breads)) {
+          state.breads.forEach((savedBread, index) => {
+            if(breads[index]) { Object.assign(breads[index], savedBread); }
+          });
+        }
+        if(state.lastUpdateTime) {
+          const now = Date.now();
+          const offlineSeconds = (now - state.lastUpdateTime) / 1000;
+          let offlineBread = null;
+          for (let i = 1; i < breads.length; i++) {
+            if(breads[i].unlocked) { offlineBread = breads[i]; break; }
+          }
+          if (!offlineBread) offlineBread = breads[0];
+          const saleRate = helperCount * (1 + helperSpeedUpgradeCount * 0.5);
+          const offlineSells = saleRate * offlineSeconds;
+          const offlineEarnings = offlineSells * offlineBread.saleValue;
+          money += offlineEarnings;
+          breads.forEach(b => {
+            if(!b.unlimited){
+              b.clickCount = 0;
+              b.isCoolingDown = false;
+              b.cooldownRemaining = 0;
+            }
+          });
+        }
+      }
+      // Ahora todos los breads son mejorables, incluso el bread1.
+      breads.forEach(b => { if(b.id === 1) { b.unlimited = true; } });
+    }
+
+    // Cálculo de ganancias por segundo
+    function getEarningPerSec(bread) {
+      if (!bread.unlocked) return 0;
+      let rate = helperCount * (1 + helperSpeedUpgradeCount * 0.5);
+      if (bread.unlimited) {
+        return bread.saleValue * rate;
+      } else {
+        let remaining = bread.clickLimit - bread.clickCount;
+        return bread.saleValue * Math.min(rate, remaining);
+      }
+    }
+
+    /* === Actualización de la UI === */
+
+    // Main Section: muestra cada bread desbloqueado
+    function updateMainSection() {
+      const mainSection = document.getElementById('mainSection');
+      mainSection.innerHTML = "";
+      const mainGrid = document.createElement('div');
+      mainGrid.className = "bread-grid";
+      // 3 columnas fijas de 150px con gap de 5px y centrado
+      mainGrid.style.gridTemplateColumns = "repeat(3, 150px)";
+      mainGrid.style.gap = "5px";
+      mainGrid.style.justifyContent = "center";
+      breads.forEach(bread => {
+        if(bread.unlocked) {
+          const card = document.createElement('div');
+          card.className = "bread-card";
+          const imgElement = document.createElement('img');
+          imgElement.src = bread.imgSrc;
+          imgElement.alt = "";
+          // Si el bread está en cooldown y no es ilimitado, se aplica filtro
+          imgElement.className = "bread-img" + ((!bread.unlimited && bread.isCoolingDown) ? " grayscale" : "");
+          imgElement.onclick = () => {
+            // Para breads con límite, si están en reposición no se puede vender manualmente
+            if(!bread.unlimited && bread.isCoolingDown) return;
+            playClickSound();
+            clickBread(bread.id);
+          };
+          card.appendChild(imgElement);
+          const infoDiv = document.createElement('div');
+          infoDiv.className = "bread-info";
+          // Muestra el precio de venta
+          const saleP = document.createElement('p');
+          saleP.innerText = "$" + bread.saleValue;
+          infoDiv.appendChild(saleP);
+          // Muestra el contador: para breads ilimitados se muestra "∞", para los limitados, "x/20"
+          const counterP = document.createElement('p');
+          if(bread.unlimited) {
+            counterP.innerText = "∞";
+          } else {
+            counterP.innerText = bread.clickCount + "/" + bread.clickLimit;
+          }
+          infoDiv.appendChild(counterP);
+          // Botón de mejora (upgrade) disponible para todos los breads
+          const upgradeBtn = document.createElement('button');
+          upgradeBtn.innerText = "$" + bread.upgradeCost;
+          upgradeBtn.onclick = (e) => {
+            e.stopPropagation();
+            upgradeBread(bread.id);
+          };
+          infoDiv.appendChild(upgradeBtn);
+          // Si el bread tiene límite y está en cooldown, se muestra el texto de reposición
+          if(!bread.unlimited && bread.isCoolingDown) {
+            const cooldownP = document.createElement('p');
+            cooldownP.innerText = languages[currentLanguage].restocking + bread.cooldownRemaining.toFixed(1);
+            infoDiv.appendChild(cooldownP);
+          }
+          card.appendChild(infoDiv);
+          mainGrid.appendChild(card);
+        }
+      });
+      mainSection.appendChild(mainGrid);
+    }
+
+    // Statistics Section
+    function updateStatsSection() {
+      const statsSection = document.getElementById('statsSection');
+      statsSection.innerHTML = "";
+      const statsContainer = document.createElement('div');
+      statsContainer.className = "stats-container";
+      const earningsTitle = document.createElement('h2');
+      earningsTitle.innerText = languages[currentLanguage].leftPanel;
+      statsContainer.appendChild(earningsTitle);
+      const earningsList = document.createElement('ul');
+      earningsList.className = "stats-list";
+      breads.forEach(b => {
+        if(b.unlocked) {
+          const li = document.createElement('li');
+          const img = document.createElement('img');
+          img.src = b.imgSrc;
+          li.appendChild(img);
+          const span = document.createElement('span');
+          span.innerText = " $" + Math.floor(getEarningPerSec(b));
+          li.appendChild(span);
+          earningsList.appendChild(li);
+        }
+      });
+      statsContainer.appendChild(earningsList);
+      const salesTitle = document.createElement('h2');
+      salesTitle.innerText = languages[currentLanguage].rightPanel;
+      statsContainer.appendChild(salesTitle);
+      const salesList = document.createElement('ul');
+      salesList.className = "stats-list";
+      breads.forEach(b => {
+        if(b.unlocked) {
+          const li = document.createElement('li');
+          const img = document.createElement('img');
+          img.src = b.imgSrc;
+          li.appendChild(img);
+          const span = document.createElement('span');
+          span.innerText = " " + b.totalSales;
+          li.appendChild(span);
+          salesList.appendChild(li);
+        }
+      });
+      statsContainer.appendChild(salesList);
+      statsSection.appendChild(statsContainer);
+    }
+
+    // Shop Section
+    function updateShopSection() {
+      const shopSection = document.getElementById('shopSection');
+      shopSection.innerHTML = "";
+      const helpersDiv = document.createElement('div');
+      helpersDiv.id = "helpersSection";
+      const buyHelperBtn = document.createElement('button');
+      buyHelperBtn.id = "buyHelperBtn";
+      buyHelperBtn.onclick = buyHelper;
+      buyHelperBtn.innerHTML = "<span class='btnLabel'>" + languages[currentLanguage].buyHelper + "</span> ($<span id='helperCostDisplay'>" + helperCost + "</span>)<br><span id='helperCountBtn'>" + languages[currentLanguage].helperCountText + helperCount + "</span>";
+      helpersDiv.appendChild(buyHelperBtn);
+      const improveHelpersBtn = document.createElement('button');
+      improveHelpersBtn.id = "improveHelpersBtn";
+      improveHelpersBtn.onclick = improveHelpers;
+      improveHelpersBtn.innerHTML = "<span class='btnLabel'>" + languages[currentLanguage].improveHelpers + "</span> ($<span id='helperSpeedUpgradeCostDisplay'>" + helperSpeedUpgradeCost + "</span>)<br><span id='improveHelpersCountBtn'>" + languages[currentLanguage].helperUpgradeCountText + helperSpeedUpgradeCount + "</span>";
+      helpersDiv.appendChild(improveHelpersBtn);
+      const buyTruckUpgradeBtn = document.createElement('button');
+      buyTruckUpgradeBtn.id = "buyTruckUpgradeBtn";
+      buyTruckUpgradeBtn.onclick = buyTruckUpgrade;
+      buyTruckUpgradeBtn.innerHTML = "<span class='btnLabel'>" + languages[currentLanguage].buyTruck + "</span> ($<span id='truckUpgradeCostDisplay'>" + truckUpgradeCost + "</span>)<br><span id='truckCountBtn'>" + languages[currentLanguage].truckCountText + truckUpgradeCount + "</span>";
+      helpersDiv.appendChild(buyTruckUpgradeBtn);
+      shopSection.appendChild(helpersDiv);
+    }
+
+    // Unlock Section: muestra los breads bloqueados en 4 columnas
+    function updateUnlockSection() {
+      const unlockSection = document.getElementById('unlockSection');
+      unlockSection.innerHTML = "";
+      const lockedGrid = document.createElement('div');
+      lockedGrid.className = "bread-grid";
+      // Forzamos 4 columnas fijas de 150px con gap de 5px y centrado
+      lockedGrid.style.gridTemplateColumns = "repeat(4, 150px)";
+      lockedGrid.style.gap = "5px";
+      lockedGrid.style.justifyContent = "center";
+      let anyLocked = false;
+      breads.forEach(bread => {
+        if(!bread.unlocked) {
+          anyLocked = true;
+          const lockedCard = document.createElement('div');
+          lockedCard.className = "bread-card";
+          const lockedImg = document.createElement('img');
+          lockedImg.src = bread.imgSrc;
+          lockedImg.className = "bread-img grayscale";
+          lockedCard.appendChild(lockedImg);
+          const lockedInfo = document.createElement('div');
+          lockedInfo.className = "bread-info";
+          const unlockP = document.createElement('p');
+          unlockP.innerText = languages[currentLanguage].unlockBreadPrefix + bread.unlockCost;
+          lockedInfo.appendChild(unlockP);
+          const unlockBtn = document.createElement('button');
+          unlockBtn.innerText = languages[currentLanguage].unlockBtn;
+          unlockBtn.onclick = () => unlockBread(bread.id);
+          lockedInfo.appendChild(unlockBtn);
+          lockedCard.appendChild(lockedInfo);
+          lockedGrid.appendChild(lockedCard);
+        }
+      });
+      unlockSection.appendChild(lockedGrid);
+      const tabUnlockButton = document.getElementById('tabUnlock');
+      if(!anyLocked) {
+        tabUnlockButton.style.display = "none";
+        if(document.querySelector('.tab-content.active').id === "unlockSection") {
+          showTab('main');
+        }
+      } else {
+        tabUnlockButton.style.display = "inline-block";
+      }
+    }
+
+    // Actualiza la UI y guarda el juego
+    function updateUI() {
+      document.getElementById('moneyDisplay').innerText = languages[currentLanguage].money + Math.floor(money);
+      let totalAuto = 0;
+      breads.forEach(b => {
+        if(b.unlocked && (b.unlimited || !b.isCoolingDown)) {
+          totalAuto += getEarningPerSec(b);
+        }
+      });
+      document.getElementById('autoEarningsDisplay').innerText = languages[currentLanguage].autoEarnings + Math.floor(totalAuto);
+      updateMainSection();
+      updateStatsSection();
+      updateShopSection();
+      updateUnlockSection();
+      saveGame();
+    }
+
+    /* === Funciones de interacción manual === */
+    function clickBread(breadId) {
+      const bread = breads.find(b => b.id === breadId);
+      if(!bread || !bread.unlocked) return;
+      // Para breads con límite, si están en cooldown no se permite vender
+      if(!bread.unlimited && bread.isCoolingDown) return;
+      // Incrementa las ventas
+      money += bread.saleValue;
+      bread.totalSales++;
+      if(!bread.unlimited) {
+        if(bread.clickCount < bread.clickLimit) {
+          bread.clickCount++;
+          // Si se alcanza el límite, activa cooldown
+          if(bread.clickCount >= bread.clickLimit) {
+            bread.isCoolingDown = true;
+            // Cada camión resta 0.5 seg del cooldown inicial (20 seg)
+            bread.cooldownRemaining = Math.max(bread.cooldown - truckUpgradeCount * 0.5, 0);
+          }
+        }
+      }
+      updateUI();
+    }
+    function upgradeBread(breadId) {
+      const bread = breads.find(b => b.id === breadId);
+      if(!bread || !bread.unlocked) return;
+      if(money >= bread.upgradeCost) {
+        money -= bread.upgradeCost;
+        // Incrementa el valor de venta en 20%
+        bread.saleValue = Math.floor(bread.saleValue * 1.2);
+        // Incrementa el costo de mejora en 50%
+        bread.upgradeCost = Math.floor(bread.upgradeCost * 1.5);
+        playPurchaseSound();
+        updateUI();
+      }
+    }
+    function unlockBread(breadId) {
+      const bread = breads.find(b => b.id === breadId);
+      if(!bread || bread.unlocked) return;
+      if(money >= bread.unlockCost) {
+        money -= bread.unlockCost;
+        bread.unlocked = true;
+        playPurchaseSound();
+        updateUI();
+      }
+    }
+    function buyHelper() {
+      if(money >= helperCost) {
+        money -= helperCost;
+        helperCount++;
+        helperCost = Math.floor(helperCost * 1.5);
+        playPurchaseSound();
+        updateUI();
+      }
+    }
+    function improveHelpers() {
+      if(helperSpeedUpgradeCount >= maxHelperSpeedUpgrade) return;
+      if(money >= helperSpeedUpgradeCost) {
+        money -= helperSpeedUpgradeCost;
+        helperSpeedUpgradeCount++;
+        helperSpeedUpgradeCost = Math.floor(helperSpeedUpgradeCost * 1.5);
+        playPurchaseSound();
+        if(helperSpeedUpgradeCount >= maxHelperSpeedUpgrade) {
+          document.getElementById("improveHelpersBtn").disabled = true;
+        }
+        updateUI();
+      }
+    }
+    function buyTruckUpgrade() {
+      if(truckUpgradeCount >= maxTruckUpgrade) return;
+      if(money >= truckUpgradeCost) {
+        money -= truckUpgradeCost;
+        truckUpgradeCount++;
+        truckUpgradeCost = Math.floor(truckUpgradeCost * 1.5);
+        playPurchaseSound();
+        if(truckUpgradeCount >= maxTruckUpgrade) {
+          document.getElementById("buyTruckUpgradeBtn").disabled = true;
+        }
+        updateUI();
+      }
+    }
+
+    /* === Navegación y configuración de idioma === */
+    function showTab(tab) {
+      const sections = document.querySelectorAll('.tab-content');
+      sections.forEach(section => section.classList.remove('active'));
+      if(tab === 'main') { document.getElementById('mainSection').classList.add('active'); }
+      else if(tab === 'stats') { document.getElementById('statsSection').classList.add('active'); }
+      else if(tab === 'shop') { document.getElementById('shopSection').classList.add('active'); }
+      else if(tab === 'unlock') { document.getElementById('unlockSection').classList.add('active'); }
+      const tabs = document.querySelectorAll('#tabNav button');
+      tabs.forEach(btn => btn.classList.remove('active'));
+      document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+    }
+    function toggleConfigMenu() {
+      const menu = document.getElementById('configMenu');
+      menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+    }
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      localStorage.setItem("selectedLanguage", lang);
+      toggleConfigMenu();
+      updateLanguageUI();
+      updateUI();
+    }
+    function updateLanguageUI() {
+      document.getElementById('gameTitle').innerText = languages[currentLanguage].title;
+      document.title = languages[currentLanguage].title;
+      document.getElementById('moneyDisplay').innerText = languages[currentLanguage].money + Math.floor(money);
+      document.getElementById('autoEarningsDisplay').innerText = languages[currentLanguage].autoEarnings + "0";
+      document.getElementById('tabMain').innerText = languages[currentLanguage].tabMain;
+      document.getElementById('tabStats').innerText = languages[currentLanguage].tabStats;
+      document.getElementById('tabShop').innerText = languages[currentLanguage].tabShop;
+      document.getElementById('tabUnlock').innerText = languages[currentLanguage].tabUnlock;
+    }
+
+    /* === Lógica automática: ventas y cooldown === */
+    setInterval(() => {
+      let updated = false;
+      if(helperCount > 0) {
+        let saleRate = helperCount * (1 + helperSpeedUpgradeCount * 0.5);
+        let currentBread = null;
+        for(let i = 1; i < breads.length; i++) {
+          const b = breads[i];
+          // Selecciona el primer bread desbloqueado que no esté en cooldown (o que sea ilimitado)
+          if(b.unlocked && (!b.isCoolingDown || b.unlimited)) { currentBread = b; break; }
+        }
+        if(!currentBread) { currentBread = breads[0]; }
+        currentBread.autoSaleAccumulator = (currentBread.autoSaleAccumulator || 0) + saleRate / 2;
+        let sells = Math.floor(currentBread.autoSaleAccumulator);
+        if(sells > 0) {
+          if(currentBread.unlimited) {
+            money += sells * currentBread.saleValue;
+            currentBread.totalSales += sells;
+          } else {
+            let remaining = currentBread.clickLimit - currentBread.clickCount;
+            let actualSells = Math.min(sells, remaining);
+            currentBread.clickCount += actualSells;
+            money += actualSells * currentBread.saleValue;
+            currentBread.totalSales += actualSells;
+            if(currentBread.clickCount >= currentBread.clickLimit) {
+              currentBread.isCoolingDown = true;
+              currentBread.cooldownRemaining = Math.max(currentBread.cooldown - truckUpgradeCount * 0.5, 0);
+            }
+          }
+          currentBread.autoSaleAccumulator -= sells;
+          updated = true;
+        }
+      }
+      breads.forEach(bread => {
+        if(!bread.unlimited && bread.isCoolingDown) {
+          bread.cooldownRemaining -= 0.5;
+          if(bread.cooldownRemaining <= 0) {
+            bread.isCoolingDown = false;
+            bread.clickCount = 0;
+            bread.cooldownRemaining = 0;
+            updated = true;
+          }
+        }
+      });
+      if(updated) updateUI();
+    }, 500);
+
+    window.addEventListener('beforeunload', saveGame);
+    const savedLanguage = localStorage.getItem("selectedLanguage");
+    if(savedLanguage && languages[savedLanguage]) { currentLanguage = savedLanguage; }
+    loadGame();
+    updateLanguageUI();
+    updateUI();
+  </script>
+</body>
+</html>
