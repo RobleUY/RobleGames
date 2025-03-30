@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡TIENDA!</title>
+  <link rel="stylesheet" href="tienda.css">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="title" id="storeTitle">THE CIRCLE OF COLORS</div>
+  <div class="title" id="storeSubtitle">Tienda de Skins</div>
+
+  <div class="victories-container">
+    <span id="victoryText">Tienes: </span><span class="victory-count" id="victoryCount">0</span> <span id="coinsText">Monedas</span>
+  </div>
+
+  <div class="skins-container">
+    <div class="skin" style="background-image: url('skins/Inicial.png');" data-skin="Inicial" onclick="playSelectAudio()"></div>
+    <div class="skin" style="background-image: url('skins/Agua.png');" data-skin="Agua" onclick="playSelectAudio()"></div>
+    <div class="skin" style="background-image: url('skins/Anonymous.png');" data-skin="Anonymous" onclick="playSelectAudio()"></div>
+    <div class="skin" style="background-image: url('skins/Diablo.png');" data-skin="Diablo" onclick="playSelectAudio()"></div>
+    <div class="skin" style="background-image: url('skins/Halloween.png');" data-skin="Halloween" onclick="playSelectAudio()"></div>
+  </div>
+  <div class="skins-container">
+    <div class="skin" style="background-image: url('skins/Lava.png');" data-skin="Lava" onclick="playSelectAudio()"></div>
+    <div class="skin" style="background-image: url('skins/Luna.png');" data-skin="Luna" onclick="playSelectAudio()"></div>
+    <div class="skin" style="background-image: url('skins/RayoMcQueen.png');" data-skin="RayoMcQueen" onclick="playSelectAudio()"></div>
+    <div class="skin" style="background-image: url('skins/Sonrisa.png');" data-skin="Sonrisa" onclick="playSelectAudio()"></div>
+    <div class="skin" style="background-image: url('skins/Spiderman.png');" data-skin="Spiderman" onclick="playSelectAudio()"></div>
+    <div class="skin" style="background-image: url('skins/Skater.png');" data-skin="Skater" onclick="playSelectAudio()"></div>
+  </div>
+
+  <div class="buttons-container">
+    <button class="start-button" onclick="playPageChangeAudio('jugar.html')">
+      <div class="welcome-text" id="playGameText">¡QUE COMIENCE EL JUEGO!</div>
+      <div class="start-text" id="clickToPlayText">CLICK PARA JUGAR</div>
+    </button>
+    <button class="salir-button" onclick="playPageChangeAudio('index.html')">
+      <div class="salir-text" id="backToMenuText">Volver al Menú Principal</div>
+    </button>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="confirmation-box" id="confirmationBox">
+        <p id="confirmationText"></p>
+        <div class="buttons-container">
+            <button class="confirm-button" id="confirmButton" onclick="playSelectAudio()">Confirmar compra</button>
+            <button class="cancel-button" id="cancelButton" onclick="playSelectAudio()">Cancelar compra</button>
+        </div>
+    </div>
+  </div>
+
+  <script src="tienda.js"></script>
+
+  <script>
+    // Function to play the select audio for skin clicks and confirm/cancel buttons
+    function playSelectAudio() {
+      const selectAudio = new Audio('select.mp3');
+      selectAudio.play();
+    }
+
+    // Function to play pulsar audio for page change buttons (e.g. play again or back to menu)
+    function playPageChangeAudio(url) {
+      const pulsarAudio = new Audio('pulsar.mp3');
+      pulsarAudio.play();
+
+      // After the sound is played, redirect to the new page
+      pulsarAudio.onended = function() {
+        window.location.href = url;
+      };
+    }
+
+    window.onload = function() {
+      const languageState = localStorage.getItem('circuloidioma');
+      
+      if (!languageState) {
+        localStorage.setItem('circuloidioma', 'english');
+      }
+
+      setLanguageUI(localStorage.getItem('circuloidioma'));
+    };
+
+    function setLanguage(language) {
+      localStorage.setItem('circuloidioma', language);
+      setLanguageUI(language);
+    }
+
+    function setLanguageUI(language) {
+      const storeTitle = document.getElementById('storeTitle');
+      const storeSubtitle = document.getElementById('storeSubtitle');
+      const victoryText = document.getElementById('victoryText');
+      const coinsText = document.getElementById('coinsText');
+      const playGameText = document.getElementById('playGameText');
+      const clickToPlayText = document.getElementById('clickToPlayText');
+      const backToMenuText = document.getElementById('backToMenuText');
+      const confirmationText = document.getElementById('confirmationText');
+      const confirmButton = document.getElementById('confirmButton');
+      const cancelButton = document.getElementById('cancelButton');
+
+      if (language === 'spanish') {
+        storeTitle.textContent = 'EL CÍRCULO DE LOS COLORES';
+        storeSubtitle.textContent = 'Tienda de Skins';
+        victoryText.textContent = 'Tienes: ';
+        coinsText.textContent = 'Monedas';
+        playGameText.textContent = '¡QUE COMIENCE EL JUEGO!';
+        clickToPlayText.textContent = 'CLICK PARA JUGAR';
+        backToMenuText.textContent = 'Volver al Menú Principal';
+        confirmationText.textContent = '¿Seguro que deseas confirmar la compra?';
+        confirmButton.textContent = 'Confirmar compra';
+        cancelButton.textContent = 'Cancelar compra';
+      } else {
+        storeTitle.textContent = 'THE CIRCLE OF COLORS';
+        storeSubtitle.textContent = 'Skin Store';
+        victoryText.textContent = 'You have: ';
+        coinsText.textContent = 'Coins';
+        playGameText.textContent = 'LET THE GAME BEGIN!';
+        clickToPlayText.textContent = 'CLICK TO PLAY';
+        backToMenuText.textContent = 'Back to Main Menu';
+        confirmationText.textContent = 'Are you sure you want to confirm the purchase?';
+        confirmButton.textContent = 'Confirm purchase';
+        cancelButton.textContent = 'Cancel purchase';
+      }
+    }
+  </script>
+</body>
+</html>
