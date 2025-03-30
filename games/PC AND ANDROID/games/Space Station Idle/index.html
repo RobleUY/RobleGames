@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Station Idle</title>
+  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="game-container">
+    <div id="stars-container"></div>
+    
+    <div id="notification-area"></div>
+    
+    <header>
+      <h1 class="game-title"><i class="fa-solid fa-rocket"></i> Space Station Idle</h1>
+      <div id="resources">
+        <div class="resource">
+          <div class="resource-icon"><i class="fa-solid fa-bolt"></i></div>
+          <span id="energy-count">0</span>
+          <span class="resource-label">Energy</span>
+        </div>
+        <div class="resource">
+          <div class="resource-icon"><i class="fa-solid fa-cubes"></i></div>
+          <span id="materials-count">0</span>
+          <span class="resource-label">Materials</span>
+        </div>
+        <div class="resource">
+          <div class="resource-icon"><i class="fa-solid fa-flask"></i></div>
+          <span id="research-count">0</span>
+          <span class="resource-label">Research</span>
+        </div>
+      </div>
+    </header>
+    
+    <main>
+      <div id="station-view">
+        <div id="station-container">
+          <div id="station" class="station-core pulse"></div>
+          <div class="station-modules">
+            <!-- Modules will be added here by JavaScript -->
+          </div>
+        </div>
+      </div>
+      
+      <div id="click-area">
+        <button id="generate-energy" class="main-button">
+          <i class="fa-solid fa-bolt"></i> Generate Energy
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+        </button>
+        <button id="generate-materials" class="main-button">
+          <i class="fa-solid fa-cubes"></i> Generate Materials
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+        </button>
+        <button id="generate-research" class="main-button">
+          <i class="fa-solid fa-flask"></i> Generate Research
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+        </button>
+      </div>
+    </main>
+    
+    <div class="game-panels">
+      <section id="upgrades" class="game-panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-arrow-up-right-dots"></i> Upgrades</h2>
+          <p class="panel-description">
+            Purchase station upgrades to automate resource generation and expand your space station. 
+            Each upgrade provides unique benefits to help grow your operation in space.
+          </p>
+        </div>
+        <div class="upgrade-grid">
+          <div class="upgrade" data-id="solar-panel">
+            <div class="upgrade-icon"><i class="fa-solid fa-solar-panel"></i></div>
+            <div class="upgrade-info">
+              <h3>Solar Panel</h3>
+              <p>Reduces energy generation cooldown by 0.2 seconds. Each panel makes your energy production faster.</p>
+              <div class="upgrade-cost"><i class="fa-solid fa-bolt"></i> <span>50 energy</span></div>
+            </div>
+            <button class="buy-btn" data-upgrade="solar-panel">Purchase</button>
+            <span class="owned">Owned: <span id="solar-panel-count">0</span></span>
+          </div>
+          
+          <div class="upgrade" data-id="material-collector">
+            <div class="upgrade-icon"><i class="fa-solid fa-magnet"></i></div>
+            <div class="upgrade-info">
+              <h3>Material Collector</h3>
+              <p>Reduces material collection cooldown by 0.5 seconds. Each collector speeds up your material gathering.</p>
+              <div class="upgrade-cost"><i class="fa-solid fa-bolt"></i> <span>100 energy</span></div>
+            </div>
+            <button class="buy-btn" data-upgrade="material-collector">Purchase</button>
+            <span class="owned">Owned: <span id="material-collector-count">0</span></span>
+          </div>
+          
+          <div class="upgrade" data-id="research-lab">
+            <div class="upgrade-icon"><i class="fa-solid fa-microscope"></i></div>
+            <div class="upgrade-info">
+              <h3>Research Lab</h3>
+              <p>Reduces research cooldown by 1 second. Each lab accelerates your research process.</p>
+              <div class="upgrade-cost">
+                <i class="fa-solid fa-bolt"></i> <span>150 energy</span><br>
+                <i class="fa-solid fa-cubes"></i> <span>50 materials</span>
+              </div>
+            </div>
+            <button class="buy-btn" data-upgrade="research-lab">Purchase</button>
+            <span class="owned">Owned: <span id="research-lab-count">0</span></span>
+          </div>
+        </div>
+      </section>
+      
+      <section id="crew" class="game-panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-user-astronaut"></i> Crew</h2>
+          <p class="panel-description">
+            Recruit specialized crew members to enhance your station's operations.
+            Each crew member provides unique bonuses to different aspects of your production.
+          </p>
+        </div>
+        <div class="crew-container">
+          <div class="crew-member" data-id="engineer">
+            <div class="crew-portrait">
+              <i class="fa-solid fa-user-gear"></i>
+            </div>
+            <div class="crew-info">
+              <h3>Engineer</h3>
+              <p>Expert in energy systems who optimizes your power grid. Increases all energy production by 10%, including manual clicks and solar panels.</p>
+              <div class="crew-cost">
+                <i class="fa-solid fa-cubes"></i> <span>200 materials</span><br>
+                <i class="fa-solid fa-flask"></i> <span>50 research</span>
+              </div>
+            </div>
+            <button class="recruit-btn" data-crew="engineer">Recruit</button>
+            <span class="status">Status: <span id="engineer-status">Not Recruited</span></span>
+          </div>
+          
+          <div class="crew-member" data-id="scientist">
+            <div class="crew-portrait">
+              <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div class="crew-info">
+              <h3>Scientist</h3>
+              <p>Brilliant researcher who improves your lab efficiency. Boosts all research output by 15%, allowing faster technological advancement.</p>
+              <div class="crew-cost">
+                <i class="fa-solid fa-cubes"></i> <span>150 materials</span><br>
+                <i class="fa-solid fa-flask"></i> <span>100 research</span>
+              </div>
+            </div>
+            <button class="recruit-btn" data-crew="scientist">Recruit</button>
+            <span class="status">Status: <span id="scientist-status">Not Recruited</span></span>
+          </div>
+          
+          <div class="crew-member" data-id="miner">
+            <div class="crew-portrait">
+              <i class="fa-solid fa-helmet-safety"></i>
+            </div>
+            <div class="crew-info">
+              <h3>Space Miner</h3>
+              <p>Skilled asteroid harvester who enhances material collection. Improves all material collection efficiency by 20%, significantly increasing your resource generation.</p>
+              <div class="crew-cost">
+                <i class="fa-solid fa-bolt"></i> <span>300 energy</span><br>
+                <i class="fa-solid fa-cubes"></i> <span>100 materials</span>
+              </div>
+            </div>
+            <button class="recruit-btn" data-crew="miner">Recruit</button>
+            <span class="status">Status: <span id="miner-status">Not Recruited</span></span>
+          </div>
+        </div>
+      </section>
+      
+      <section id="achievements" class="game-panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-trophy"></i> Achievements</h2>
+          <p class="panel-description">
+            Complete special milestones to earn achievements and showcase your progress
+            as you expand your space station empire.
+          </p>
+        </div>
+        <div id="achievements-list">
+          <!-- Achievements will be added here by JavaScript -->
+        </div>
+      </section>
+    </div>
+  </div>
+  
+  <script src="index.js"></script>
+</body>
+</html>
