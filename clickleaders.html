@@ -5,59 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Click Leaders</title>
     <style>
-      /* Estilos generales para el splash y la pantalla de error */
-      body,
-      html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-      }
-      /* Splash screen con fondo negro */
-      #splash {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: #000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-      }
-      #splash img {
-        max-width: 90vw;
-        max-height: 90vh;
-        width: auto;
-        height: auto;
-        animation: fade 3s ease-in-out forwards;
-      }
-      @keyframes fade {
-        0% {
-          opacity: 0;
-        }
-        20% {
-          opacity: 1;
-        }
-        80% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0;
-        }
-      }
-      /* Contenido para el error en caso de no tener conexión */
-      #content {
-        display: none;
-        text-align: center;
+      body {
+        background-color: #0f0f23;
         color: #fff;
         font-family: sans-serif;
-      }
-      body.error {
-        background-color: #0f0f23;
         display: flex;
         align-items: center;
         justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+      #content {
+        text-align: center;
       }
       .error {
         font-size: 1.5rem;
@@ -78,37 +37,21 @@
     </style>
   </head>
   <body>
-    <!-- Pantalla Splash -->
-    <div id="splash">
-      <img src="assets/Click Leaders.png" alt="Splash Icon" />
-    </div>
-    <!-- Contenedor para el mensaje de error (en caso de no tener conexión) -->
     <div id="content"></div>
     <script>
-      // Función para verificar la conexión a Internet
       function checkConnection() {
         if (navigator.onLine) {
-          // Si hay conexión, redirige a la URL especificada
+          // Redirige si hay conexión
           window.location.href = "https://clickleaders.onrender.com";
         } else {
-          // Si no hay conexión, muestra un mensaje de error y botón para reintentar
-          document.body.classList.add("error");
-          document.getElementById("content").style.display = "block";
+          // Muestra mensaje de error y botón para reintentar
           document.getElementById("content").innerHTML = `
             <div class="error">Sin internet.</div>
             <button class="retry-button" onclick="checkConnection()">Retry</button>
           `;
         }
       }
-      // Al cargar la ventana, se espera 3 segundos para mostrar la animación y luego se verifica la conexión
-      window.addEventListener("load", function () {
-        setTimeout(function () {
-          // Elimina la pantalla splash
-          document.getElementById("splash").remove();
-          // Verifica la conexión para redirigir o mostrar error
-          checkConnection();
-        }, 3000);
-      });
+      checkConnection(); // Verifica la conexión al cargar
     </script>
   </body>
 </html>
