@@ -1,0 +1,36 @@
+{
+  "en": [
+    "apple", "banana", "orange", "grape", "melon",
+    "house", "mouse", "table", "chair", "couch",
+    "book", "page", "story", "author", "novel",
+    "jump", "swim", "walk", "dance", "sing",
+    "happy", "angry", "tired", "excited", "nervous",
+    "cloud", "rain", "snow", "wind", "storm",
+    "river", "ocean", "lake", "pond", "stream",
+    "car", "bike", "train", "plane", "boat",
+    "phone", "computer", "tablet", "screen", "keyboard",
+    "dog", "cat", "bird", "fish", "rabbit",
+    "morning", "afternoon", "evening", "night", "dawn",
+    "shirt", "pants", "shoes", "hat", "socks",
+    "red", "blue", "green", "yellow", "purple",
+    "city", "town", "village", "country", "state",
+    "pizza", "pasta", "burger", "sandwich", "salad"
+  ],
+  "es": [
+    "manzana", "plátano", "naranja", "uva", "melón",
+    "casa", "ratón", "mesa", "silla", "sofá",
+    "libro", "página", "cuento", "autor", "novela",
+    "saltar", "nadar", "caminar", "bailar", "cantar",
+    "feliz", "enojado", "cansado", "emocionado", "nervioso",
+    "nube", "lluvia", "nieve", "viento", "tormenta",
+    "río", "océano", "lago", "estanque", "arroyo",
+    "coche", "bicicleta", "tren", "avión", "barco",
+    "teléfono", "ordenador", "tableta", "pantalla", "teclado",
+    "perro", "gato", "pájaro", "pez", "conejo",
+    "mañana", "tarde", "noche", "amanecer", "atardecer",
+    "camisa", "pantalón", "zapatos", "sombrero", "calcetines",
+    "rojo", "azul", "verde", "amarillo", "morado",
+    "ciudad", "pueblo", "aldea", "país", "estado",
+    "pizza", "pasta", "hamburguesa", "sándwich", "ensalada"
+  ]
+}
