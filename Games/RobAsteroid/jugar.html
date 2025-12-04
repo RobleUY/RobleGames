@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROBASTEROID</title>
+    <style>
+        body {
+			position: absolute;
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+        #reiniciar {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        #PLAY {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        #puntaje {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 30px;
+        }
+        #record {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            color: gold;
+            font-size: 30px;
+        }
+        #Pause {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+        #Pause img {
+            width: 50px;
+            height: 50px;
+        }
+        #misiles-container {
+            position: absolute;
+            top: 100px;
+            left: 10px;
+            display: flex;
+            gap: 5px;
+            visibility: visible;
+        }
+        #recarga-texto {
+            position: absolute;
+            top: 150px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+            visibility: hidden;
+        }
+
+        /* Estilos para los botones de dirección */
+        #izquierda, #derecha {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-color: black; 
+            border: none;
+            cursor: pointer;
+            background-size: cover;
+			z-index: 10;
+        }
+
+        #izquierda {
+            left: 20px;
+            bottom: 20px;
+            background-image: url('izquierda.png');
+        }
+
+        #derecha {
+            right: 20px;
+            bottom: 20px;
+            background-image: url('derecha.png');
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <button id="reiniciar">RESTART</button>
+    <button id="PLAY">PLAY</button>
+    <div id="puntaje">Points: 0</div>
+    <div id="record">Best Score: 0</div>
+    <button id="Pause"><img src="pause.png" alt="Pauser"></button>
+
+    <div id="misiles-container"></div>
+    <div id="recarga-texto">Reloading Ammunition...</div>
+
+    <!-- Botones para mover la nave -->
+    <button id="izquierda"></button>
+    <button id="derecha"></button>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const reiniciarButton = document.getElementById("reiniciar");
+        const PLAYButton = document.getElementById("PLAY");
+        const puntajeDiv = document.getElementById("puntaje");
+        const recordDiv = document.getElementById("record");
+        const PauseButton = document.getElementById("Pause");
+        const misilesContainer = document.getElementById("misiles-container");
+        const recargaTexto = document.getElementById("recarga-texto");
+
+        const musica = new Audio('music.mp3');
+        musica.loop = true;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let nave = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            width: 50,
+            height: 50,
+            speed: 5,
+            img: new Image()
+        };
+        nave.img.src = 'nave.png';
+
+        let asteroides = [];
+        let misiles = [];
+        let puntaje = 0;
+
+        let juegoActivo = false;
+        let PauseActivo = false;
+        let lineas = [];
+
+        let misilesDisponibles = 10;
+        let misilesIconos = Array(10).fill(false);
+        let recargando = false;
+        let contadorRecarga = 5;
+        const sonidoMisil = new Audio('misil.mp3');
+        const sonidoRecarga = new Audio('recarga.mp3');
+
+        // Variables para el movimiento
+        let moviendoIzquierda = false;
+        let moviendoDerecha = false;
+
+        // Controlar el movimiento de la nave
+        document.getElementById("izquierda").addEventListener('touchstart', () => {
+            moviendoIzquierda = true;
+        });
+
+        document.getElementById("izquierda").addEventListener('touchend', () => {
+            moviendoIzquierda = false;
+        });
+
+        document.getElementById("derecha").addEventListener('touchstart', () => {
+            moviendoDerecha = true;
+        });
+
+        document.getElementById("derecha").addEventListener('touchend', () => {
+            moviendoDerecha = false;
+        });
+
+        // Disparar al hacer touch en cualquier parte del canvas (excepto los botones)
+        document.addEventListener('touchstart', (e) => {
+            if (e.target !== document.getElementById("izquierda") && e.target !== document.getElementById("derecha")) {
+                if (juegoActivo && !PauseActivo) {
+                    dispararMisil();
+                }
+            }
+        });
+
+        let record = localStorage.getItem('robasteroiderecord');
+        if (!record) {
+            record = 0;
+        }
+        recordDiv.textContent = `Best Score: ${record}`;
+
+        function actualizarIconosMisiles() {
+            misilesContainer.innerHTML = '';
+            if (misilesDisponibles > 0) {
+                misilesIconos.forEach((icono, index) => {
+                    const img = document.createElement('img');
+                    img.src = icono ? 'misil2.png' : 'misil.png';
+                    img.width = 30;
+                    img.height = 30;
+                    misilesContainer.appendChild(img);
+                });
+            }
+        }
+
+        function dispararMisil() {
+            if (misilesDisponibles > 0 && !recargando) {
+                const misil = {
+                    x: nave.x + nave.width / 2 - 15,
+                    y: nave.y,
+                    width: 40,
+                    height: 100,
+                    speed: 7,
+                    img: new Image()
+                };
+                misil.img.src = 'misil.png';
+                misiles.push(misil);
+
+                const sonidoMisilClone = sonidoMisil.cloneNode();
+                sonidoMisilClone.play();
+
+                misilesIconos[misilesDisponibles - 1] = true;
+                misilesDisponibles--;
+                actualizarIconosMisiles();
+            }
+
+            if (misilesDisponibles === 0 && !recargando) {
+                misilesContainer.style.visibility = 'hidden';
+                recargando = true;
+                sonidoRecarga.play();
+                recargaTexto.style.visibility = 'visible';
+                recargarMisiles();
+            }
+        }
+
+        function recargarMisiles() {
+            const recargaIntervalo = setInterval(() => {
+                contadorRecarga--;
+                recargaTexto.textContent = `Reloading Ammunition: ${contadorRecarga}s`;
+
+                if (contadorRecarga === 0) {
+                    misilesDisponibles = 10;
+                    misilesIconos = Array(10).fill(false);
+                    actualizarIconosMisiles();
+                    recargando = false;
+                    recargaTexto.style.visibility = 'hidden';
+                    misilesContainer.style.visibility = 'visible';
+                    contadorRecarga = 5;
+                    clearInterval(recargaIntervalo);
+                }
+            }, 1000);
+        }
+
+        function crearLinea() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            const velocidad = Math.random() * 6 + 4;
+            lineas.push({ x, y, velocidad });
+        }
+
+        function dibujarFondo() {
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+
+            lineas.forEach((linea, index) => {
+                ctx.beginPath();
+                ctx.moveTo(linea.x, linea.y);
+                ctx.lineTo(linea.x, linea.y + 20);
+                ctx.stroke();
+
+                linea.y += linea.velocidad;
+
+                if (linea.y > canvas.height) {
+                    lineas.splice(index, 1);
+                    crearLinea();
+                }
+            });
+        }
+
+        const sonidoImpacto = new Audio('asteroide.mp3');
+
+        function reproducirSonidoImpacto() {
+            const sonidoImpactoClone = sonidoImpacto.cloneNode();
+            sonidoImpactoClone.play();
+        }
+
+        function dibujar() {
+            if (PauseActivo) return;
+
+            dibujarFondo();
+
+            ctx.drawImage(nave.img, nave.x, nave.y, nave.width, nave.height);
+
+            misiles.forEach((misil, index) => {
+                misil.y -= misil.speed;
+                ctx.drawImage(misil.img, misil.x, misil.y, misil.width, misil.height);
+
+                if (misil.y < 0) {
+                    misiles.splice(index, 1);
+                }
+
+                asteroides.forEach((asteroide, astIndex) => {
+                    if (colision(misil, asteroide)) {
+                        reproducirSonidoImpacto();
+                        asteroide.img.src = 'impacto.png';
+
+                        setTimeout(() => {
+                            asteroides.splice(astIndex, 1);
+                            crearAsteroide();
+                        }, 100);
+
+                        misiles.splice(index, 1);
+                        puntaje++;
+                        crearAsteroide();
+                    }
+                });
+            });
+
+            asteroides.forEach((asteroide, index) => {
+                ctx.drawImage(asteroide.img, asteroide.x, asteroide.y, asteroide.width, asteroide.height);
+                asteroide.y += asteroide.speed;
+
+                if (asteroide.y > canvas.height) {
+                    asteroides.splice(index, 1);
+                    crearAsteroide();
+                }
+
+                if (colision(nave, asteroide)) {
+                    juegoActivo = false;
+                    setTimeout(() => {
+                        terminarJuego();
+                    }, 500);
+                }
+            });
+
+            puntajeDiv.textContent = `Points: ${puntaje}`;
+
+            // Movimiento de la nave basado en los botones
+            if (moviendoIzquierda && nave.x > 0) {
+                nave.x -= nave.speed;
+            }
+            if (moviendoDerecha && nave.x < canvas.width - nave.width) {
+                nave.x += nave.speed;
+            }
+
+            if (juegoActivo) {
+                requestAnimationFrame(dibujar);
+            }
+        }
+
+        function colision(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+
+        function crearAsteroide() {
+            const asteroide = {
+                x: Math.random() * canvas.width,
+                y: -50,
+                width: 50,
+                height: 50,
+                speed: Math.random() * 4 + 1,
+                img: new Image()
+            };
+            asteroide.img.src = 'asteroide.png';
+            asteroides.push(asteroide);
+        }
+
+        function empezarJuego() {
+            juegoActivo = true;
+            crearAsteroide();
+            musica.play();
+            PLAYButton.style.display = 'none';
+            reiniciarButton.style.display = 'none';
+            dibujar();
+        }
+
+        function terminarJuego() {
+            if (puntaje > record) {
+                localStorage.setItem('robasteroiderecord', puntaje);
+                recordDiv.textContent = `Best Score: ${puntaje}`;
+            }
+            reiniciarButton.style.display = 'block';
+        }
+
+        PLAYButton.addEventListener('click', empezarJuego);
+        reiniciarButton.addEventListener('click', () => {
+            window.location.reload();
+        });
+
+        PauseButton.addEventListener('click', () => {
+            if (juegoActivo) {
+                PauseActivo = !PauseActivo;
+                if (PauseActivo) {
+                    musica.pause();
+                } else {
+                    musica.play();
+                    dibujar();
+                }
+            }
+        });
+
+        // Crear las primeras líneas
+        setInterval(crearLinea, 100);
+    </script>
+</body>
+</html>

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #111; color: #fff; font-family: Arial, sans-serif; }
+    .shop-header { text-align: center; background-color: #222; padding: 15px; border-bottom: 2px solid #333; }
+    .shop-header h1 { font-size: 24px; }
+    #coins { color: #00ffff; margin-left: 8px; }
+    #tabs-container { display: flex; justify-content: center; margin: 20px 0; }
+    .tab-button {
+      background-color: #222;
+      color: #fff;
+      border: 1px solid #333;
+      padding: 10px 20px;
+      margin: 0 5px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .tab-button.active { background-color: #00bfbf; }
+    #palettes-container, #upgrades-container {
+      width: 90%;
+      max-width: 400px;
+      margin: 20px auto;
+      display: none;
+    }
+    .palette-item, .upgrade-item {
+      display: flex;
+      align-items: center;
+      background-color: #222;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      justify-content: space-between;
+    }
+    .palette-box {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      margin-right: 10px;
+      border: 1px solid #333;
+    }
+    .palette-box div { width: 100%; height: 100%; }
+    .palette-info, .upgrade-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .palette-name, .upgrade-name { font-weight: bold; margin-bottom: 3px; }
+    .palette-status { opacity: 0.8; }
+    .upgrade-detail { font-size: 12px; color: #aaa; }
+    .buy-button {
+      background-color: #00bfbf;
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 5px;
+    }
+    .buy-button:disabled { background-color: #555; cursor: default; }
+    #back { display: block; margin: 20px auto; width: 30px; cursor: pointer; }
+    @media (max-width: 600px) {
+      .shop-header h1 { font-size: 20px; }
+      .palette-item, .upgrade-item { padding: 8px; }
+      .buy-button { padding: 4px 8px; font-size: 12px; }
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    .modal p { font-size: 18px; margin-bottom: 20px; }
+    .modal label { margin-bottom: 10px; display: block; }
+    .modal button { padding: 8px 16px; font-size: 14px; margin: 10px; cursor: pointer; }
+    .custom-buttons { display: flex; gap: 5px; }
+  </style>
+</head>
+<body>
+  <div class="shop-header">
+    <h1>SHOP <span id="coins"></span></h1>
+  </div>
+  <div id="tabs-container">
+    <button id="tab-palettes" class="tab-button active">Color Palettes</button>
+    <button id="tab-upgrades" class="tab-button">Upgrades</button>
+  </div>
+  <div id="palettes-container"></div>
+  <div id="upgrades-container"></div>
+  <a href="index.html">
+    <img id="back" src="volver.png" alt="Back">
+  </a>
+  <script>
+    // Actualizamos las monedas desde localStorage (o 0)
+    let coins = parseInt(localStorage.getItem('Zigzag_Rush_coins')) || 0;
+    const coinsElement = document.getElementById('coins');
+    function updateCoins() {
+      coinsElement.textContent = coins;
+      localStorage.setItem('Zigzag_Rush_coins', coins);
+    }
+    updateCoins();
+
+    // Aseguramos que si no existen, se establezcan valores predeterminados para la tienda de paletas.
+    if (!localStorage.getItem('Zigzag_Rush_paletas_compradas')) {
+      localStorage.setItem('Zigzag_Rush_paletas_compradas', JSON.stringify([0]));
+    }
+    if (!localStorage.getItem('Zigzag_Rush_paleta')) {
+      // Por defecto, la paleta 0 es la default.
+      const defaultPalette = { name: '', colors: ['#1E1E1E', '#2A2A2A', '#3C3C3C', '#FFFFFF'], isDefault: true, unlocked: true, price: 0 };
+      localStorage.setItem('Zigzag_Rush_paleta', JSON.stringify(defaultPalette));
+    }
+
+    let selectedPaletteIndex = localStorage.getItem('Zigzag_Rush_selectedPaletteIndex') !== null ? parseInt(localStorage.getItem('Zigzag_Rush_selectedPaletteIndex')) : 0;
+    let paletas_compradas = JSON.parse(localStorage.getItem('Zigzag_Rush_paletas_compradas')) || [];
+    if (!paletas_compradas.includes(0)) {
+      paletas_compradas.push(0);
+      localStorage.setItem('Zigzag_Rush_paletas_compradas', JSON.stringify(paletas_compradas));
+    }
+
+    // Niveles de upgrades
+    let magnetLevel = parseInt(localStorage.getItem('Zigzag_Rush_magnet')) || 1;
+    let powerupLevel = parseInt(localStorage.getItem('Zigzag_Rush_powerup')) || 5;
+    function formatNumber(num) {
+      return num < 10 ? "0" + num : num;
+    }
+
+    // Catálogo de paletas (índice 0 es la default; los demás se deben comprar)
+    const palettes = [
+      { name: '', colors: ['#1E1E1E', '#2A2A2A', '#3C3C3C', '#FFFFFF'], isDefault: true, unlocked: true, price: 0 },
+      { name: 'Palette 01', colors: ['#162916', '#2D4A2D', '#5A8B5A', '#E3F2E3'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 02', colors: ['#0A0F1E', '#14223D', '#284375', '#AFC7E7'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 03', colors: ['#3A0B0B', '#6A1B1B', '#A83232', '#F5CCCC'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 04', colors: ['#001F3F', '#003366', '#005599', '#A3D2FF'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 05', colors: ['#2E1A47', '#4B2F6F', '#6E4B9B', '#D1B3E0'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 06', colors: ['#0C261D', '#1B4D36', '#2F7C5A', '#D2F5E3'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 07', colors: ['#260E26', '#461746', '#722772', '#E0B3E0'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 08', colors: ['#0E1F1F', '#1F3D3D', '#3D7C7C', '#B3E0E0'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 09', colors: ['#3E221B', '#6A3A2F', '#8B5A46', '#EED3C3'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 10', colors: ['#2D1A1A', '#4A2A2A', '#7A5A5A', '#E5CCCC'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 11', colors: ['#4E2A1B', '#6B3A25', '#8A4B2F', '#F7EBDD'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 12', colors: ['#0B3D3D', '#145454', '#1E6B6B', '#D1F0F0'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 13', colors: ['#2B2B2B', '#3C1F1F', '#4D3030', '#F2D7D5'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 14', colors: ['#0D2E1C', '#15502A', '#1E7340', '#DFF0E1'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 15', colors: ['#0A1B2C', '#153247', '#1F4761', '#D0E4F7'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 16', colors: ['#1C1F3D', '#2B314D', '#39465E', '#D9DDE9'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 17', colors: ['#2A3B44', '#3B4F5A', '#4C6370', '#DCE3E8'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 18', colors: ['#331A2D', '#4C2A41', '#663155', '#F8E0EF'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 19', colors: ['#2B2C1A', '#3C3D26', '#4D4E33', '#E8E8D0'], isDefault: false, unlocked: false, price: 8000 },
+      { name: 'Palette 20', colors: ['#13293B', '#1C3D5A', '#265178', '#D0E2F0'], isDefault: false, unlocked: false, price: 8000 }
+    ];
+
+    // Actualizar cada paleta comprada como desbloqueada
+    paletas_compradas = JSON.parse(localStorage.getItem('Zigzag_Rush_paletas_compradas')) || [0];
+    paletas_compradas.forEach(index => { 
+      if (palettes[index]) { 
+        palettes[index].unlocked = true; 
+      }
+    });
+
+    const palettesContainer = document.getElementById('palettes-container');
+    const upgradesContainer = document.getElementById('upgrades-container');
+
+    function renderPalettes() {
+      palettesContainer.innerHTML = '';
+
+      // Render Default Palette (index 0)
+      const defaultPalette = palettes[0];
+      const defaultItem = document.createElement('div');
+      defaultItem.classList.add('palette-item');
+
+      const defaultBox = document.createElement('div');
+      defaultBox.classList.add('palette-box');
+      defaultPalette.colors.forEach(color => {
+        const div = document.createElement('div');
+        div.style.backgroundColor = color;
+        defaultBox.appendChild(div);
+      });
+
+      const defaultInfo = document.createElement('div');
+      defaultInfo.classList.add('palette-info');
+      const defaultName = document.createElement('span');
+      defaultName.classList.add('palette-name');
+      defaultName.textContent = defaultPalette.name || "Default";
+      const defaultStatus = document.createElement('span');
+      defaultStatus.classList.add('palette-status');
+      defaultStatus.textContent = " DEFAULT";
+      defaultInfo.appendChild(defaultName);
+      defaultInfo.appendChild(defaultStatus);
+
+      const defaultBtn = document.createElement('button');
+      defaultBtn.classList.add('buy-button');
+      defaultBtn.textContent = (selectedPaletteIndex === 0) ? "Selected" : "Select";
+      defaultBtn.addEventListener('click', () => {
+        selectedPaletteIndex = 0;
+        localStorage.setItem('Zigzag_Rush_selectedPaletteIndex', 0);
+        localStorage.setItem('Zigzag_Rush_paleta', JSON.stringify(defaultPalette));
+        renderPalettes();
+      });
+
+      defaultItem.appendChild(defaultBox);
+      defaultItem.appendChild(defaultInfo);
+      defaultItem.appendChild(defaultBtn);
+      palettesContainer.appendChild(defaultItem);
+
+      // Render Custom Palette (index -1)
+      const required = palettes.length - 1; // Total available (excluding default)
+      const unlockedCount = Math.max(0, paletas_compradas.length - 1);
+      const customItem = document.createElement('div');
+      customItem.classList.add('palette-item');
+
+      const customBox = document.createElement('div');
+      customBox.classList.add('palette-box');
+      let customPalette = localStorage.getItem('Zigzag_Rush_paleta_custom');
+      if (customPalette) { 
+        customPalette = JSON.parse(customPalette); 
+      } else { 
+        customPalette = { stripes: ['#1E1E1E', '#2A2A2A', '#3C3C3C'], playerColor: '#FFFFFF' }; 
+      }
+      const cDiv1 = document.createElement('div');
+      cDiv1.style.backgroundColor = customPalette.stripes[0];
+      const cDiv2 = document.createElement('div');
+      cDiv2.style.backgroundColor = customPalette.stripes[1];
+      const cDiv3 = document.createElement('div');
+      cDiv3.style.backgroundColor = customPalette.stripes[2];
+      const cDiv4 = document.createElement('div');
+      cDiv4.style.backgroundColor = customPalette.playerColor;
+      customBox.appendChild(cDiv1);
+      customBox.appendChild(cDiv2);
+      customBox.appendChild(cDiv3);
+      customBox.appendChild(cDiv4);
+
+      const customInfo = document.createElement('div');
+      customInfo.classList.add('palette-info');
+      const customName = document.createElement('span');
+      customName.classList.add('palette-name');
+      customName.textContent = "Custom";
+      const customStatus = document.createElement('span');
+      customStatus.classList.add('palette-status');
+      customStatus.textContent = unlockedCount >= required ? " UNLOCKED" : ` ${unlockedCount}/${required}`;
+      customInfo.appendChild(customName);
+      customInfo.appendChild(customStatus);
+
+      const customBtnContainer = document.createElement('div');
+      if (unlockedCount < required) {
+        // No se han comprado todas las paletas, muestra requisito
+        const reqBtn = document.createElement('button');
+        reqBtn.classList.add('buy-button');
+        reqBtn.textContent = `${unlockedCount}/${required}`;
+        reqBtn.addEventListener('click', () => {
+          openRequirementModal(unlockedCount, required);
+        });
+        customBtnContainer.appendChild(reqBtn);
+      } else {
+        // Si se han comprado todas, mostrar botones Select y Edit
+        customBtnContainer.classList.add('custom-buttons');
+        const selectBtn = document.createElement('button');
+        selectBtn.classList.add('buy-button');
+        selectBtn.textContent = (selectedPaletteIndex === -1) ? "Selected" : "Select";
+        selectBtn.addEventListener('click', () => {
+          selectedPaletteIndex = -1;
+          localStorage.setItem('Zigzag_Rush_selectedPaletteIndex', -1);
+          localStorage.setItem('Zigzag_Rush_paleta', JSON.stringify(customPalette));
+          renderPalettes();
+        });
+        const editBtn = document.createElement('button');
+        editBtn.classList.add('buy-button');
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener('click', () => {
+          openCustomPaletteModal();
+        });
+        customBtnContainer.appendChild(selectBtn);
+        customBtnContainer.appendChild(editBtn);
+      }
+
+      customItem.appendChild(customBox);
+      customItem.appendChild(customInfo);
+      customItem.appendChild(customBtnContainer);
+      palettesContainer.appendChild(customItem);
+
+      // Renderizar las paletas restantes (índices 1 a 20)
+      for (let i = 1; i < palettes.length; i++) {
+        const palette = palettes[i];
+        const paletteItem = document.createElement('div');
+        paletteItem.classList.add('palette-item');
+
+        const paletteBox = document.createElement('div');
+        paletteBox.classList.add('palette-box');
+        palette.colors.forEach(color => {
+          const colorDiv = document.createElement('div');
+          colorDiv.style.backgroundColor = color;
+          paletteBox.appendChild(colorDiv);
+        });
+
+        const paletteInfo = document.createElement('div');
+        paletteInfo.classList.add('palette-info');
+        const paletteName = document.createElement('span');
+        paletteName.classList.add('palette-name');
+        paletteName.textContent = palette.name;
+        const paletteStatus = document.createElement('span');
+        paletteStatus.classList.add('palette-status');
+        paletteStatus.textContent = palette.unlocked ? " UNLOCKED" : " LOCKED";
+        paletteInfo.appendChild(paletteName);
+        paletteInfo.appendChild(paletteStatus);
+
+        const buyButton = document.createElement('button');
+        buyButton.classList.add('buy-button');
+        if (!palette.unlocked) { 
+          buyButton.textContent = "$" + palette.price; 
+        } else { 
+          buyButton.textContent = (selectedPaletteIndex === i) ? "Selected" : "Select"; 
+        }
+        buyButton.addEventListener('click', () => {
+          if (!palette.unlocked) {
+            if (coins >= palette.price) {
+              const confirmDiv = document.createElement('div');
+              confirmDiv.className = "modal";
+              const message = document.createElement('p');
+              message.textContent = "Confirm purchase?";
+              const confirmBtn = document.createElement('button');
+              confirmBtn.textContent = "Confirm";
+              const cancelBtn = document.createElement('button');
+              cancelBtn.textContent = "Cancel";
+              confirmDiv.appendChild(message);
+              const btnContainer = document.createElement('div');
+              btnContainer.appendChild(confirmBtn);
+              btnContainer.appendChild(cancelBtn);
+              confirmDiv.appendChild(btnContainer);
+              document.body.appendChild(confirmDiv);
+              confirmBtn.addEventListener('click', () => {
+                coins -= palette.price;
+                palette.unlocked = true;
+                if (!paletas_compradas.includes(i)) {
+                  paletas_compradas.push(i);
+                  localStorage.setItem('Zigzag_Rush_paletas_compradas', JSON.stringify(paletas_compradas));
+                }
+                selectedPaletteIndex = i;
+                localStorage.setItem('Zigzag_Rush_selectedPaletteIndex', i);
+                localStorage.setItem('Zigzag_Rush_paleta', JSON.stringify(palette));
+                updateCoins();
+                renderPalettes();
+                document.body.removeChild(confirmDiv);
+              });
+              cancelBtn.addEventListener('click', () => {
+                document.body.removeChild(confirmDiv);
+              });
+            } else {
+              const insufficientDiv = document.createElement('div');
+              insufficientDiv.className = "modal";
+              const msg = document.createElement('p');
+              msg.textContent = "Insufficient funds.";
+              const closeBtn = document.createElement('button');
+              closeBtn.textContent = "Close";
+              insufficientDiv.appendChild(msg);
+              insufficientDiv.appendChild(closeBtn);
+              document.body.appendChild(insufficientDiv);
+              closeBtn.addEventListener('click', () => {
+                document.body.removeChild(insufficientDiv);
+              });
+            }
+          } else {
+            if (selectedPaletteIndex !== i) {
+              selectedPaletteIndex = i;
+              localStorage.setItem('Zigzag_Rush_selectedPaletteIndex', i);
+              localStorage.setItem('Zigzag_Rush_paleta', JSON.stringify(palette));
+              renderPalettes();
+            }
+          }
+        });
+        paletteItem.appendChild(paletteBox);
+        paletteItem.appendChild(paletteInfo);
+        paletteItem.appendChild(buyButton);
+        palettesContainer.appendChild(paletteItem);
+      }
+    }
+
+    function openCustomPaletteModal() {
+      const modal = document.createElement('div');
+      modal.className = "modal";
+      const title = document.createElement('p');
+      title.textContent = "Edit Custom Palette";
+      modal.appendChild(title);
+      
+      const label1 = document.createElement('label');
+      label1.textContent = "Background Color 1:";
+      const input1 = document.createElement('input');
+      input1.type = "color";
+      let customPalette = localStorage.getItem('Zigzag_Rush_paleta_custom');
+      if (customPalette) { customPalette = JSON.parse(customPalette); }
+      else { customPalette = { stripes: ['#1E1E1E', '#2A2A2A', '#3C3C3C'], playerColor: '#FFFFFF' }; }
+      input1.value = customPalette.stripes[0];
+      label1.appendChild(input1);
+      modal.appendChild(label1);
+      
+      const label2 = document.createElement('label');
+      label2.textContent = "Background Color 2:";
+      const input2 = document.createElement('input');
+      input2.type = "color";
+      input2.value = customPalette.stripes[1];
+      label2.appendChild(input2);
+      modal.appendChild(label2);
+      
+      const label3 = document.createElement('label');
+      label3.textContent = "Background Color 3:";
+      const input3 = document.createElement('input');
+      input3.type = "color";
+      input3.value = customPalette.stripes[2];
+      label3.appendChild(input3);
+      modal.appendChild(label3);
+      
+      const label4 = document.createElement('label');
+      label4.textContent = "Player Color:";
+      const input4 = document.createElement('input');
+      input4.type = "color";
+      input4.value = customPalette.playerColor;
+      label4.appendChild(input4);
+      modal.appendChild(label4);
+      
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = "Save";
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = "Close";
+      modal.appendChild(saveBtn);
+      modal.appendChild(cancelBtn);
+      document.body.appendChild(modal);
+      
+      saveBtn.addEventListener('click', () => {
+        const newPalette = {
+          stripes: [input1.value, input2.value, input3.value],
+          playerColor: input4.value
+        };
+        localStorage.setItem('Zigzag_Rush_paleta_custom', JSON.stringify(newPalette));
+        selectedPaletteIndex = -1;
+        localStorage.setItem('Zigzag_Rush_selectedPaletteIndex', -1);
+        localStorage.setItem('Zigzag_Rush_paleta', JSON.stringify(newPalette));
+        document.body.removeChild(modal);
+        renderPalettes();
+      });
+      cancelBtn.addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
+    }
+
+    function openRequirementModal(unlocked, required) {
+      const modal = document.createElement('div');
+      modal.className = "modal";
+      const msg = document.createElement('p');
+      msg.textContent = `To unlock Custom Palette, you need to purchase all palettes. You have purchased ${unlocked}/${required}.`;
+      modal.appendChild(msg);
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = "Close";
+      modal.appendChild(closeBtn);
+      document.body.appendChild(modal);
+      closeBtn.addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
+    }
+
+    // Upgrades
+    const upgrades = [
+      { name: "MAGNET", icon: "🧲", price: 12000 },
+      { name: "POWERUP", icon: "⚡", price: 12000 }
+    ];
+    function renderUpgrades() {
+      upgradesContainer.innerHTML = '';
+      upgrades.forEach(upgrade => {
+        const upgradeItem = document.createElement('div');
+        upgradeItem.classList.add('upgrade-item');
+        const upgradeIcon = document.createElement('span');
+        upgradeIcon.classList.add('upgrade-icon');
+        upgradeIcon.textContent = upgrade.icon;
+        upgradeIcon.style.fontSize = "24px";
+        upgradeIcon.style.marginRight = "10px";
+        const upgradeInfo = document.createElement('div');
+        upgradeInfo.classList.add('upgrade-info');
+        const upgradeName = document.createElement('span');
+        upgradeName.classList.add('upgrade-name');
+        upgradeName.textContent = upgrade.name;
+        const upgradeDetail = document.createElement('span');
+        upgradeDetail.classList.add('upgrade-detail');
+        if (upgrade.name === "MAGNET") {
+          upgradeDetail.textContent = "Level: " + formatNumber(magnetLevel) + "/10";
+        } else if (upgrade.name === "POWERUP") {
+          upgradeDetail.textContent = "Duration: " + powerupLevel + "/10 Seconds";
+        }
+        upgradeInfo.appendChild(upgradeName);
+        upgradeInfo.appendChild(upgradeDetail);
+        const upgradeButton = document.createElement('button');
+        upgradeButton.classList.add('buy-button');
+        if ((upgrade.name === "MAGNET" && magnetLevel >= 10) ||
+            (upgrade.name === "POWERUP" && powerupLevel >= 10)) {
+          upgradeButton.disabled = true;
+          upgradeButton.textContent = "MAX";
+        } else {
+          upgradeButton.textContent = "$" + upgrade.price;
+          upgradeButton.addEventListener('click', () => {
+            if (coins >= upgrade.price) {
+              coins -= upgrade.price;
+              updateCoins();
+              if (upgrade.name === "MAGNET") {
+                if (magnetLevel < 10) {
+                  magnetLevel++;
+                  localStorage.setItem('Zigzag_Rush_magnet', magnetLevel);
+                }
+              } else if (upgrade.name === "POWERUP") {
+                if (powerupLevel < 10) {
+                  powerupLevel++;
+                  localStorage.setItem('Zigzag_Rush_powerup', powerupLevel);
+                }
+              }
+              renderUpgrades();
+            } else {
+              const insufficientDiv = document.createElement('div');
+              insufficientDiv.className = "modal";
+              const msg = document.createElement('p');
+              msg.textContent = "Insufficient funds.";
+              const closeBtn = document.createElement('button');
+              closeBtn.textContent = "Close";
+              insufficientDiv.appendChild(msg);
+              insufficientDiv.appendChild(closeBtn);
+              document.body.appendChild(insufficientDiv);
+              closeBtn.addEventListener('click', () => {
+                document.body.removeChild(insufficientDiv);
+              });
+            }
+          });
+        }
+        upgradeItem.appendChild(upgradeIcon);
+        upgradeItem.appendChild(upgradeInfo);
+        upgradeItem.appendChild(upgradeButton);
+        upgradesContainer.appendChild(upgradeItem);
+      });
+    }
+
+    // Tabs
+    const tabPalettes = document.getElementById('tab-palettes');
+    const tabUpgrades = document.getElementById('tab-upgrades');
+    tabPalettes.addEventListener('click', () => {
+      tabPalettes.classList.add('active');
+      tabUpgrades.classList.remove('active');
+      palettesContainer.style.display = 'block';
+      upgradesContainer.style.display = 'none';
+      renderPalettes();
+    });
+    tabUpgrades.addEventListener('click', () => {
+      tabUpgrades.classList.add('active');
+      tabPalettes.classList.remove('active');
+      upgradesContainer.style.display = 'block';
+      palettesContainer.style.display = 'none';
+      renderUpgrades();
+    });
+    // Al cargar la página, activamos el tab de paletas
+    palettesContainer.style.display = 'block';
+    upgradesContainer.style.display = 'none';
+    renderPalettes();
+
+    /********************************************************************
+     * O) BOTÓN "Back"
+     ********************************************************************/
+    // El enlace de "back" ya redirige a index.html
+
+    /********************************************************************
+     * P) ACTUALIZAR MONEDAS
+     ********************************************************************/
+    function updateCoins() {
+      coinsElement.textContent = coins;
+      localStorage.setItem('Zigzag_Rush_coins', coins);
+    }
+
+  </script>
+</body>
+</html>

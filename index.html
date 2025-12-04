@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>RobleGames</title>
+<link rel="icon" href="icon.jpg" />
+
+<style>
+
+/* BLOQUEAR SELECCIóN DE TEXTO */
+body, * {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+/* BLOQUEAR ARRASTRE DE IMáGENES */
+img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+
+/* ---------------------- VARIABLES ---------------------- */
+:root {
+  --bg-primary: #0a0e27;
+  --bg-secondary: #151937;
+  --bg-card: rgba(25, 30, 60, 0.7);
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --text: #ffffff;
+  --text-muted: #8b92b8;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-light: #a5b4fc;
+  --accent-glow: 0 0 30px rgba(99, 102, 241, 0.4);
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-card: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  --radius: 20px;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------------------- BASE ---------------------- */
+* { 
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+  background: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ---------------------- ANIMATED BACKGROUND ---------------------- */
+.bg-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.floating-shape {
+  position: absolute;
+  background: var(--gradient-primary);
+  border-radius: 50%;
+  opacity: 0.1;
+  animation: float 20s infinite ease-in-out;
+  filter: blur(60px);
+}
+
+.shape-1 {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.shape-2 {
+  width: 300px;
+  height: 300px;
+  bottom: -50px;
+  right: -50px;
+  animation-delay: -7s;
+}
+
+.shape-3 {
+  width: 250px;
+  height: 250px;
+  top: 50%;
+  left: 50%;
+  animation-delay: -14s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(50px, -50px) scale(1.1); }
+  66% { transform: translate(-30px, 40px) scale(0.9); }
+}
+
+/* ---------------------- CONTAINER ---------------------- */
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 30px;
+}
+
+/* ---------------------- HEADER ---------------------- */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(10, 14, 39, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px 0;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: transform 0.3s ease;
+}
+
+.brand:hover {
+  transform: translateY(-2px);
+}
+
+.logo-container {
+  position: relative;
+}
+
+.logo-glow {
+  position: absolute;
+  inset: -10px;
+  background: var(--gradient-primary);
+  border-radius: 50%;
+  filter: blur(20px);
+  opacity: 0.5;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+.brand img {
+  width: 70px;
+  height: 70px;
+  border-radius: 18px;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand-text h1 {
+  font-size: 32px;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+}
+
+.brand-text p {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.device-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 50px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.device-badge strong {
+  color: var(--accent-light);
+}
+
+/* ---------------------- HERO SECTION ---------------------- */
+.hero {
+  padding: 60px 0 40px;
+  text-align: center;
+}
+
+.hero h2 {
+  font-size: 48px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.hero .gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero p {
+  font-size: 18px;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto 40px;
+  line-height: 1.6;
+}
+
+/* ---------------------- SEARCH & FILTERS ---------------------- */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.search-wrapper {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
+}
+
+.search-box {
+  width: 100%;
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 16px 20px 16px 55px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.search-box:hover,
+.search-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.search-box:focus-within .search-icon {
+  color: var(--accent);
+}
+
+.search-box input {
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 16px;
+  outline: none;
+  font-weight: 500;
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border: 2px solid var(--glass-border);
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  color: var(--text);
+  padding: 12px 28px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn span {
+  position: relative;
+  z-index: 1;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--accent-glow);
+}
+
+.btn.active {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: white;
+  box-shadow: var(--accent-glow);
+}
+
+.btn.active::before {
+  opacity: 1;
+}
+
+/* ---------------------- GAME GRID ---------------------- */
+#gameList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+  padding-bottom: 60px;
+}
+
+.card {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-card);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.card:hover {
+  transform: translateY(-12px) scale(1.02);
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow), 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.icon-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.icon-glow {
+  position: absolute;
+  inset: -15px;
+  background: var(--gradient-primary);
+  border-radius: 20px;
+  filter: blur(25px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.card:hover .icon-glow {
+  opacity: 0.6;
+}
+
+.card img.icon {
+  width: 140px;
+  height: 140px;
+  border-radius: 18px;
+  object-fit: cover;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
+  transition: transform 0.4s ease;
+}
+
+.card:hover img.icon {
+  transform: scale(1.05) rotate(2deg);
+}
+
+.card h3 {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.card p {
+  margin: 0 0 16px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------------------- PLATFORM BADGES ---------------------- */
+.platform-badges {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.platform-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.platform-badge.pc {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+
+.platform-badge.mobile {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #d8b4fe;
+}
+
+.card:hover .platform-badge {
+  transform: translateY(-2px);
+}
+
+.card:hover .platform-badge.pc {
+  background: rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+.card:hover .platform-badge.mobile {
+  background: rgba(168, 85, 247, 0.25);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+}
+
+.platform-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------------------- TAG BOX ---------------------- */
+.tag-box {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--accent-light);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.card:hover .tag {
+  background: rgba(99, 102, 241, 0.25);
+  transform: translateY(-2px);
+}
+
+/* -------- EMPTY -------- */
+.empty {
+  text-align: center;
+  grid-column: 1 / -1;
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border: 2px dashed var(--glass-border);
+  padding: 60px 40px;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.3;
+}
+
+.empty strong {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.empty p {
+  font-size: 16px;
+}
+
+/* ---------------------- RESPONSIVE ---------------------- */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 20px;
+  }
+
+  .hero h2 {
+    font-size: 36px;
+  }
+
+  .hero p {
+    font-size: 16px;
+  }
+
+  .brand-text h1 {
+    font-size: 24px;
+  }
+
+  .brand img {
+    width: 55px;
+    height: 55px;
+  }
+
+  .controls {
+    flex-direction: column;
+  }
+
+  .search-wrapper {
+    width: 100%;
+  }
+
+  .filter-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #gameList {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h2 {
+    font-size: 28px;
+  }
+
+  #gameList {
+    grid-template-columns: 1fr;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+/* ---------------------- SCROLLBAR ---------------------- */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 10px;
+  border: 3px solid var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 39, 0.6);
+  backdrop-filter: blur(6px) saturate(160%);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-overlay[aria-hidden="false"] {
+  display: flex;
+}
+
+.modal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-width: 520px;
+  width: calc(100% - 60px);
+  padding: 28px;
+  text-align: center;
+}
+
+.modal-card h3 {
+  margin-bottom: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.modal-card p {
+  color: var(--text);
+  opacity: 0.9;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 18px;
+}
+</style>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="bg-animation">
+  <div class="floating-shape shape-1"></div>
+  <div class="floating-shape shape-2"></div>
+  <div class="floating-shape shape-3"></div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="container">
+    <div class="header-content">
+      <div class="brand">
+        <div class="logo-container">
+          <div class="logo-glow"></div>
+          <img src="icon.jpg" alt="RobleGames Logo">
+        </div>
+        <div class="brand-text">
+          <h1>RobleGames</h1>
+          <p>Tu plataforma de juegos definitiva</p>
+        </div>
+      </div>
+
+      <div class="device-badge">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"/>
+          <path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+        </svg>
+        <span>Dispositivo: <strong id="detectedDevice">...</strong></span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="container">
+    <h2>Descubre y juega <span class="gradient-text">incre铆bles juegos</span></h2>
+    <p>Explora nuestra colecci贸n de juegos seleccionados especialmente para ti. Compatible con PC y m贸vil.</p>
+	<p>@RobleUY</p>
+  </div>
+</section>
+
+<!-- Controls -->
+<section class="container">
+  <div class="controls">
+    <div class="search-wrapper">
+      <div class="search-box">
+        <svg class="search-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input id="searchInput" type="search" placeholder="Buscar juegos..." />
+      </div>
+    </div>
+
+    <div class="filter-buttons">
+      <button class="btn active" data-filter="all"><span>馃幃 Todos</span></button>
+      <button class="btn" data-filter="pc"><span><img src="assets/computadora.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px;" alt="PC"> PC</span></button>
+      <button class="btn" data-filter="mobile"><span><img src="assets/celular.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px;" alt="M贸vil"> M贸vil</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- Game Grid -->
+<main class="container">
+  <div id="gameList"></div>
+</main>
+
+<div id="compatModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-card">
+    <h3>Compatibilidad del juego</h3>
+    <p id="compatModalMsg"></p>
+    <div class="modal-actions">
+      <button class="btn" id="compatCancel"><span>Cancelar</span></button>
+      <button class="btn active" id="compatContinue"><span>Continuar</span></button>
+    </div>
+  </div>
+  </div>
+
+<script src="apps.js"></script>
+
+<script>
+/* ------- DETECT DEVICE ------- */
+function detectDevice() {
+  const ua = navigator.userAgent.toLowerCase();
+  return /android|iphone|ipad|mobile/.test(ua) ? "mobile" : "pc";
+}
+const detected = detectDevice();
+document.getElementById("detectedDevice").textContent = detected === "pc" ? "PC" : "M贸vil";
+
+/* ELEMENTS */
+const gameListEl = document.getElementById("gameList");
+const searchInput = document.getElementById("searchInput");
+const toggles = document.querySelectorAll(".btn[data-filter]");
+let currentFilter = "all";
+
+let pendingUrl = null;
+const compatModal = document.getElementById('compatModal');
+const compatMsg = document.getElementById('compatModalMsg');
+const compatCancel = document.getElementById('compatCancel');
+const compatContinue = document.getElementById('compatContinue');
+
+function openCompatModal(message, url) {
+  pendingUrl = url;
+  compatMsg.textContent = message;
+  compatModal.setAttribute('aria-hidden', 'false');
+}
+
+function closeCompatModal() {
+  compatModal.setAttribute('aria-hidden', 'true');
+  pendingUrl = null;
+}
+
+compatCancel.onclick = () => closeCompatModal();
+compatContinue.onclick = () => {
+  const url = pendingUrl;
+  closeCompatModal();
+  if (url) window.location.href = url;
+};
+
+/* ------- RENDER PLATFORM BADGES ------- */
+function renderPlatformBadges(platforms) {
+  const badges = [];
+  
+  if (platforms.includes('pc')) {
+    badges.push(`
+      <div class="platform-badge pc">
+        <svg fill="currentColor" viewBox="0 0 16 16">
+          <path d="M2 2.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+        PC
+      </div>
+    `);
+  }
+  
+  if (platforms.includes('mobile')) {
+    badges.push(`
+      <div class="platform-badge mobile">
+        <svg fill="currentColor" viewBox="0 0 16 16">
+          <path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"/>
+          <path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+        </svg>
+        M贸vil
+      </div>
+    `);
+  }
+  
+  return badges.join('');
+}
+
+/* ------- RENDER GAMES -------- */
+function renderGames() {
+  const query = searchInput.value.trim().toLowerCase();
+
+  const filtered = games.filter(g => {
+    if (currentFilter !== "all" && !g.platform.includes(currentFilter)) return false;
+    if (query && !g.name.toLowerCase().includes(query)) return false;
+    return true;
+  });
+
+  gameListEl.innerHTML = "";
+
+  if (filtered.length === 0) {
+    gameListEl.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">馃幃</div>
+        <strong>No se encontraron juegos</strong>
+        <p>Intenta con otro t茅rmino de b煤squeda o filtro</p>
+      </div>`;
+    return;
+  }
+
+  filtered.forEach(g => {
+    const a = document.createElement("a");
+    a.className = "card";
+    a.href = g.url;
+
+    a.addEventListener('click', (e) => {
+      const isCompatible = g.platform.includes(detected);
+      if (!isCompatible) {
+        e.preventDefault();
+        const supportedText = (g.platform.includes('mobile') && !g.platform.includes('pc'))
+          ? 'm贸viles'
+          : (g.platform.includes('pc') && !g.platform.includes('mobile'))
+          ? 'PC'
+          : g.platform.join(', ');
+        const msg = `Este juego est谩 dise帽ado para ${supportedText}. 驴Deseas continuar de todos modos?`;
+        openCompatModal(msg, g.url);
+      }
+    });
+
+    a.innerHTML = `
+      <div class="card-content">
+        <div class="icon-wrapper">
+          <div class="icon-glow"></div>
+          <img class="icon" src="${g.icon}" alt="${g.name}">
+        </div>
+        <h3>${g.name}</h3>
+        <p>${g.short || "Juego incre铆ble"}</p>
+        <div class="platform-badges">
+          ${renderPlatformBadges(g.platform)}
+        </div>
+        <div class="tag-box">
+          ${(g.tags || "").split(",").slice(0,3).map(t => `<span class="tag">${t.trim()}</span>`).join("")}
+        </div>
+      </div>
+    `;
+
+    gameListEl.appendChild(a);
+  });
+}
+
+/* ------- FILTER BUTTONS -------- */
+toggles.forEach(btn => {
+  btn.onclick = () => {
+    toggles.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentFilter = btn.dataset.filter;
+    renderGames();
+  };
+});
+
+searchInput.oninput = () => renderGames();
+
+/* INIT */
+renderGames();
+</script>
+
+</body>
+</html>

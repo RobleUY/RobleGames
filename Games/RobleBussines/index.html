@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Roble Bussines • Developed by RobleUY</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="particles"></div>
+
+  <div id="start" class="start">
+    <div class="brand">
+      <h1>Roble Bussines</h1>
+      <p>Desarrollado por RobleUY</p>
+    </div>
+    <button id="btnPlay" class="btn primary">JUGAR</button>
+  </div>
+
+  <header class="topbar" id="topbar">
+    <div class="logo">Roble Bussines</div>
+    <div class="balances">
+      <div class="balance">
+        <img src="assets/money.png" alt="Dinero" />
+        <span id="money">$0</span>
+      </div>
+      <div class="balance">
+        <img src="assets/oro.png" alt="Oro" />
+        <span id="gold">0</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btnDaily" class="icon" title="Recompensas diarias">
+        <img src="assets/calendario.png" alt="Calendario" />
+      </button>
+      <button id="btnSkip" class="icon" title="Adelantar 1 hora">
+        <img src="assets/adelantar_tiempo.png" alt="Adelantar tiempo" />
+      </button>
+      <button id="btnManual" class="icon" title="Mejorar producción manual">
+        <img src="assets/cursor.png" alt="Mejoras de click" />
+      </button>
+      <button id="btnSettings" class="icon" title="Configuración">
+        <img src="assets/configuracion.png" alt="Configuración" />
+      </button>
+    </div>
+  </header>
+
+  <main id="game" class="game">
+    <section class="hero">
+      <button id="btnClick" class="clicker">
+        <img src="assets/money.png" alt="Click" />
+        <span id="clickValue">+0</span>
+      </button>
+      <div class="rate">
+        <span>Producción por segundo</span>
+        <strong id="rate">0</strong>
+      </div>
+    </section>
+
+    <section class="panel businesses">
+      <h2>Negocios</h2>
+      <div id="businessList" class="list"></div>
+    </section>
+  </main>
+
+  <div id="dailyModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <img src="assets/calendario.png" alt="Calendario" />
+        <h3>Recompensas diarias</h3>
+      </div>
+      <div id="dailyGrid" class="daily-grid"></div>
+      <div class="modal-actions">
+        <button id="btnClaimDaily" class="btn success">Reclamar</button>
+        <button id="btnCloseDaily" class="btn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <img src="assets/configuracion.png" alt="Configuración" />
+        <h3>Configuración</h3>
+      </div>
+      <div class="settings">
+        <label>
+          Música
+          <input id="musicVol" type="range" min="0" max="1" step="0.01" />
+        </label>
+        <label>
+          Efectos
+          <input id="sfxVol" type="range" min="0" max="1" step="0.01" />
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button id="btnCloseSettings" class="btn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="skipModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <img src="assets/adelantar_tiempo.png" alt="Adelantar" />
+        <h3>Adelantar 1 hora</h3>
+      </div>
+      <p id="skipText"></p>
+      <div class="modal-actions">
+        <button id="btnConfirmSkip" class="btn warning">Adelantar</button>
+        <button id="btnCloseSkip" class="btn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="offlineModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <img src="assets/money.png" alt="Ganancias offline" />
+        <h3>Ganancias offline</h3>
+      </div>
+      <p id="offlineText"></p>
+      <div class="modal-actions">
+        <button id="btnCloseOffline" class="btn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="manualModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <img src="assets/cursor.png" alt="Mejoras" />
+        <h3>Mejoras de click</h3>
+      </div>
+      <div class="settings">
+        <div id="manualInfo"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="btnBuyManual" class="btn primary">Mejorar</button>
+        <button id="btnCloseManual" class="btn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts" aria-hidden="false"></div>
+
+  <footer class="footer" id="footer">
+    <span>Roble Bussines • Creado por: RobleUY</span>
+  </footer>
+
+  <audio id="music" src="assets/audio/music.mp3" loop></audio>
+  <audio id="sfxClick" src="assets/audio/click.mp3"></audio>
+  <audio id="sfxBuy" src="assets/audio/buy.mp3"></audio>
+  <audio id="sfxError" src="assets/audio/error.mp3"></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>

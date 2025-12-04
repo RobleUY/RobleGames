@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>60 seconds in the circle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Main Menu -->
+        <div id="main-menu">
+            <h1 class="game-title">60 seconds in the circle</h1>
+            
+            <!-- Game Statistics -->
+            <div class="stats-container">
+                <div class="stat-item">
+                    <span class="stat-label">Victories:</span>
+                    <span id="victories-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Defeats:</span>
+                    <span id="defeats-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Best streak:</span>
+                    <span id="max-consecutive-victories" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total time played:</span>
+                    <span id="total-time-played" class="stat-value">00:00:00:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Coins:</span>
+                    <span id="coins-count" class="stat-value">0</span>
+                </div>
+            </div>
+            
+            <button id="play-button">PLAY</button>
+            <button id="shop-button">SHOP</button>
+            <button id="settings-button" class="icon-button">
+                <img src="assets/icons/settings.png" alt="Settings" class="settings-icon">
+            </button>
+        </div>
+
+        <!-- Shop Panel (hidden by default) -->
+        <div id="shop-panel" class="hidden settings-panel">
+            <h2>Shop</h2>
+            <div class="shop-categories">
+                <button id="category-skins" class="category-button active">Skins</button>
+                <button id="category-backgrounds" class="category-button">Backgrounds</button>
+            </div>
+            
+            <!-- Skins Container -->
+            <div id="skins-container" class="skins-container">
+                <div class="skin-item" data-skin="default">
+                    <div class="skin-preview default-skin"></div>
+                    <div class="skin-name">Default</div>
+                    <div class="skin-status selected">Selected</div>
+                </div>
+                <div class="skin-item" data-skin="galaxy">
+                    <div class="skin-preview galaxy-skin"></div>
+                    <div class="skin-name">Galaxy</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-skin="gold">
+                    <div class="skin-preview gold-skin"></div>
+                    <div class="skin-name">Gold</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-skin="fire">
+                    <div class="skin-preview fire-skin"></div>
+                    <div class="skin-name">Fire</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-skin="ocean">
+                    <div class="skin-preview ocean-skin"></div>
+                    <div class="skin-name">Ocean</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-skin="neon">
+                    <div class="skin-preview neon-skin"></div>
+                    <div class="skin-name">Neon</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-skin="crystal">
+                    <div class="skin-preview crystal-skin"></div>
+                    <div class="skin-name">Crystal</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-skin="magma">
+                    <div class="skin-preview magma-skin"></div>
+                    <div class="skin-name">Magma</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-skin="rainbow">
+                    <div class="skin-preview rainbow-skin"></div>
+                    <div class="skin-name">Rainbow</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-skin="plasma">
+                    <div class="skin-preview plasma-skin"></div>
+                    <div class="skin-name">Plasma</div>
+                    <div class="skin-status">Select</div>
+                </div>
+            </div>
+            
+            <!-- Backgrounds Container (hidden by default) -->
+            <div id="backgrounds-container" class="skins-container hidden">
+                <div class="skin-item" data-background="default">
+                    <div class="skin-preview background-default"></div>
+                    <div class="skin-name">Default</div>
+                    <div class="skin-status selected">Selected</div>
+                </div>
+                <div class="skin-item" data-background="desert">
+                    <div class="skin-preview background-desert"></div>
+                    <div class="skin-name">Desert</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-background="ocean">
+                    <div class="skin-preview background-ocean"></div>
+                    <div class="skin-name">Ocean</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-background="space">
+                    <div class="skin-preview background-space"></div>
+                    <div class="skin-name">Space</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-background="night">
+                    <div class="skin-preview background-night"></div>
+                    <div class="skin-name">Night</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-background="lava">
+                    <div class="skin-preview background-lava"></div>
+                    <div class="skin-name">Lava</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-background="winter">
+                    <div class="skin-preview background-winter"></div>
+                    <div class="skin-name">Winter</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-background="abstract">
+                    <div class="skin-preview background-abstract"></div>
+                    <div class="skin-name">Abstract</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-background="neon">
+                    <div class="skin-preview background-neon"></div>
+                    <div class="skin-name">Neon</div>
+                    <div class="skin-status">Select</div>
+                </div>
+                <div class="skin-item" data-background="volcano">
+                    <div class="skin-preview background-volcano"></div>
+                    <div class="skin-name">Volcano</div>
+                    <div class="skin-status">Select</div>
+                </div>
+            </div>
+            
+            <button id="close-shop">Back to Menu</button>
+        </div>
+        
+        <!-- Settings Panel (hidden by default) -->
+        <div id="settings-panel" class="hidden settings-panel">
+            <h2>Settings</h2>
+            <div class="settings-group">
+                <div class="volume-control">
+                    <button id="mute-button" class="icon-button">
+                        <img src="assets/icons/volume_on.png" alt="Volume" id="volume-icon">
+                    </button>
+                    <div class="volume-slider-container">
+                        <input type="range" min="0" max="100" value="100" class="volume-slider" id="volume-slider">
+                        <div class="volume-value" id="volume-value">100%</div>
+                    </div>
+                </div>
+            </div>
+            <button id="close-settings">Back to Menu</button>
+        </div>
+
+        <!-- Game -->
+        <div id="game" class="hidden">
+            <!-- Progress Bar with Percentage Display -->
+            <div id="percentage-text">0%</div>
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+            
+            <div id="circle">
+                <div id="timer">60</div>
+            </div>
+        </div>
+
+        <!-- Defeat Screen -->
+        <div id="game-over" class="hidden result-screen">
+            <div class="result-header defeat">GAME OVER</div>
+            <div class="result-stats"> 
+                <p>Time survived: <span id="time-survived">0</span> seconds</p>
+                <p>Progress: <span id="progress-percent">0</span>%</p>
+            </div>
+            <div class="result-message">Try again!</div>
+            <div class="button-container">
+                <button id="restart-button">Play Again</button>
+                <button id="menu-button-over">Main Menu</button>
+            </div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div id="winner" class="hidden result-screen">
+            <div class="result-header victory">VICTORY!</div>
+            <div class="result-stats">
+                <p>You did it! You held on for 60 seconds!</p>
+                <p>Progress: 100%</p>
+                <p>You have won a bonus of 60 coins</p>
+            </div>
+            <div class="result-message">You're a control master!</div>
+            <div class="button-container">
+                <button id="restart-button-win">Play Again</button>
+                <button id="menu-button-win">Main Menu</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

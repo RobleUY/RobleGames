@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rewards</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #111; color: #fff; font-family: Arial, sans-serif; }
+    .header {
+      text-align: center;
+      background-color: #222;
+      padding: 15px;
+      border-bottom: 2px solid #333;
+    }
+    .header h1 { font-size: 24px; }
+    /* Pesta?as */
+    #tabs-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .tab-button {
+      background-color: #222;
+      color: #fff;
+      border: 1px solid #333;
+      padding: 10px 20px;
+      margin: 0 5px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .tab-button.active {
+      background-color: #00bfbf;
+    }
+    /* Contenedores de recompensas */
+    .reward-container {
+      width: 90%;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 10px;
+      display: none;
+    }
+    .reward-container h2 {
+      margin-bottom: 15px;
+      text-align: center;
+      border-bottom: 1px solid #333;
+      padding-bottom: 5px;
+    }
+    .reward-item {
+      background-color: #222;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .reward-item h3 { font-size: 20px; margin-bottom: 5px; }
+    .reward-desc { font-size: 14px; color: #aaa; }
+    .reward-button {
+      background-color: #00bfbf;
+      border: none;
+      color: #fff;
+      padding: 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .reward-button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
+    .countdown, .reward-status {
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    /* Bot車n de volver (imagen "volver.png") */
+    #back {
+      display: block;
+      margin: 20px auto;
+      width: 30px;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      .header h1 { font-size: 20px; }
+      .reward-item { padding: 10px; }
+      .reward-button { padding: 8px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Rewards</h1>
+  </div>
+
+  <!-- Contenedor de pesta?as -->
+  <div id="tabs-container">
+    <!-- Ninguna pesta?a tiene clase "active" al inicio -->
+    <button id="tab-time" class="tab-button">Time Rewards</button>
+    <button id="tab-distance" class="tab-button">Distance Rewards</button>
+  </div>
+
+  <!-- Secci車n 1: Time Rewards -->
+  <div id="time-rewards" class="reward-container">
+    <h2>Time Rewards</h2>
+    <!-- Daily Reward -->
+    <div class="reward-item" id="daily-reward">
+      <h3>Daily Reward</h3>
+      <p class="reward-desc">Claim 5,000 coins once every 24 hours.</p>
+      <button class="reward-button" id="daily-btn">Loading...</button>
+      <div class="countdown" id="daily-countdown"></div>
+    </div>
+    <!-- Weekly Reward -->
+    <div class="reward-item" id="weekly-reward">
+      <h3>Weekly Reward</h3>
+      <p class="reward-desc">Claim 20,000 coins once every 7 days.<br>(Unlocks after claiming Daily Reward)</p>
+      <button class="reward-button" id="weekly-btn">Loading...</button>
+      <div class="countdown" id="weekly-countdown"></div>
+    </div>
+    <!-- Monthly Reward -->
+    <div class="reward-item" id="monthly-reward">
+      <h3>Monthly Reward</h3>
+      <p class="reward-desc">Claim 80,000 coins once every 30 days.<br>(Unlocks after claiming Daily Reward)</p>
+      <button class="reward-button" id="monthly-btn">Loading...</button>
+      <div class="countdown" id="monthly-countdown"></div>
+    </div>
+  </div>
+
+  <!-- Secci車n 2: Distance Rewards -->
+  <div id="distance-rewards" class="reward-container">
+    <h2>Distance Rewards</h2>
+    <!-- Primer umbral actualizado a 10,000 -->
+    <div class="reward-item" id="distance-reward-10000">
+      <h3>10,000 Distance</h3>
+      <p class="reward-desc">Reach 10,000 total distance to claim 1,000 coins.</p>
+      <button class="reward-button" id="distance-btn-10000">Loading...</button>
+      <div class="reward-status" id="distance-status-10000"></div>
+    </div>
+    <div class="reward-item" id="distance-reward-50000">
+      <h3>50,000 Distance</h3>
+      <p class="reward-desc">Reach 50,000 total distance to claim 2,500 coins.</p>
+      <button class="reward-button" id="distance-btn-50000">Loading...</button>
+      <div class="reward-status" id="distance-status-50000"></div>
+    </div>
+    <div class="reward-item" id="distance-reward-100000">
+      <h3>100,000 Distance</h3>
+      <p class="reward-desc">Reach 100,000 total distance to claim 5,000 coins.</p>
+      <button class="reward-button" id="distance-btn-100000">Loading...</button>
+      <div class="reward-status" id="distance-status-100000"></div>
+    </div>
+    <div class="reward-item" id="distance-reward-250000">
+      <h3>250,000 Distance</h3>
+      <p class="reward-desc">Reach 250,000 total distance to claim 10,000 coins.</p>
+      <button class="reward-button" id="distance-btn-250000">Loading...</button>
+      <div class="reward-status" id="distance-status-250000"></div>
+    </div>
+    <div class="reward-item" id="distance-reward-500000">
+      <h3>500,000 Distance</h3>
+      <p class="reward-desc">Reach 500,000 total distance to claim 15,000 coins.</p>
+      <button class="reward-button" id="distance-btn-500000">Loading...</button>
+      <div class="reward-status" id="distance-status-500000"></div>
+    </div>
+    <div class="reward-item" id="distance-reward-1000000">
+      <h3>1,000,000 Distance</h3>
+      <p class="reward-desc">Reach 1,000,000 total distance to claim 25,000 coins.</p>
+      <button class="reward-button" id="distance-btn-1000000">Loading...</button>
+      <div class="reward-status" id="distance-status-1000000"></div>
+    </div>
+    <div class="reward-item" id="distance-reward-5000000">
+      <h3>5,000,000 Distance</h3>
+      <p class="reward-desc">Reach 5,000,000 total distance to claim 50,000 coins.</p>
+      <button class="reward-button" id="distance-btn-5000000">Loading...</button>
+      <div class="reward-status" id="distance-status-5000000"></div>
+    </div>
+    <div class="reward-item" id="distance-reward-10000000">
+      <h3>10,000,000 Distance</h3>
+      <p class="reward-desc">Reach 10,000,000 total distance to claim 100,000 coins.</p>
+      <button class="reward-button" id="distance-btn-10000000">Loading...</button>
+      <div class="reward-status" id="distance-status-10000000"></div>
+    </div>
+  </div>
+
+  <!-- Bot車n de volver (imagen "volver.png") -->
+  <a href="index.html">
+    <img id="back" src="volver.png" alt="Back">
+  </a>
+
+  <script>
+    /***************** TIME REWARDS CODE *****************/
+    // Intervalos en milisegundos
+    const DAILY_WAIT = 24 * 60 * 60 * 1000;      // 24 horas
+    const WEEKLY_WAIT = 7 * 24 * 60 * 60 * 1000;   // 7 d赤as
+    const MONTHLY_WAIT = 30 * 24 * 60 * 60 * 1000;  // 30 d赤as
+
+    // Cantidades de recompensa
+    const DAILY_AMOUNT = 5000;
+    const WEEKLY_AMOUNT = 20000;
+    const MONTHLY_AMOUNT = 80000;
+
+    // Keys en localStorage
+    const FIRST_DAILY_KEY = "Zigzag_Rush_firstDailyClaim__";
+    const LAST_DAILY_KEY = "Zigzag_Rush_lastDailyClaim__";
+    const WEEKLY_KEY = "Zigzag_Rush_weeklyClaim__";
+    const MONTHLY_KEY = "Zigzag_Rush_monthlyClaim__";
+
+    // Elementos Time Rewards
+    const dailyBtn = document.getElementById("daily-btn");
+    const weeklyBtn = document.getElementById("weekly-btn");
+    const monthlyBtn = document.getElementById("monthly-btn");
+    const dailyCountdown = document.getElementById("daily-countdown");
+    const weeklyCountdown = document.getElementById("weekly-countdown");
+    const monthlyCountdown = document.getElementById("monthly-countdown");
+
+    // Formatear tiempo (d赤as, horas, minutos, segundos)
+    function formatTime(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const days = Math.floor(totalSec / (3600 * 24));
+      const hours = Math.floor((totalSec % (3600 * 24)) / 3600);
+      const minutes = Math.floor((totalSec % 3600) / 60);
+      const seconds = totalSec % 60;
+      return `| ${days}D | ${hours}H | ${minutes}M | ${seconds}S |`;
+    }
+
+    // Obtener/guardar timestamps
+    function getTime(key) {
+      return parseInt(localStorage.getItem(key)) || 0;
+    }
+    function setTime(key) {
+      localStorage.setItem(key, Date.now());
+    }
+
+    function claimDaily() {
+      setTime(LAST_DAILY_KEY);
+      if (getTime(FIRST_DAILY_KEY) === 0) {
+        setTime(FIRST_DAILY_KEY);
+      }
+      addCoins(DAILY_AMOUNT);
+    }
+    function claimWeekly() {
+      setTime(WEEKLY_KEY);
+      addCoins(WEEKLY_AMOUNT);
+    }
+    function claimMonthly() {
+      setTime(MONTHLY_KEY);
+      addCoins(MONTHLY_AMOUNT);
+    }
+    // Suma monedas (clave "Zigzag_Rush_coins")
+    function addCoins(amount) {
+      let coins = parseInt(localStorage.getItem("Zigzag_Rush_coins")) || 0;
+      coins += amount;
+      localStorage.setItem("Zigzag_Rush_coins", coins);
+      console.log(`Awarded ${amount} coins! Total: ${coins}`);
+    }
+
+    function updateTimeRewards() {
+      const now = Date.now();
+      const lastDaily = getTime(LAST_DAILY_KEY);
+      if (lastDaily === 0 || (now - lastDaily >= DAILY_WAIT)) {
+        dailyBtn.disabled = false;
+        dailyBtn.textContent = "Claim Daily (5,000 coins)";
+        dailyCountdown.textContent = "";
+      } else {
+        dailyBtn.disabled = true;
+        const remaining = DAILY_WAIT - (now - lastDaily);
+        dailyBtn.textContent = "Claim Daily";
+        dailyCountdown.textContent = "Available in " + formatTime(remaining);
+      }
+      const firstDaily = getTime(FIRST_DAILY_KEY);
+      if (firstDaily === 0) {
+        weeklyBtn.disabled = true;
+        weeklyBtn.textContent = "Claim Weekly";
+        weeklyCountdown.textContent = "Unlock by claiming Daily Reward first.";
+        monthlyBtn.disabled = true;
+        monthlyBtn.textContent = "Claim Monthly";
+        monthlyCountdown.textContent = "Unlock by claiming Daily Reward first.";
+      } else {
+        const weeklyClaimed = getTime(WEEKLY_KEY);
+        if (weeklyClaimed !== 0) {
+          weeklyBtn.disabled = true;
+          weeklyBtn.textContent = "Weekly Already Claimed";
+          weeklyCountdown.textContent = "";
+        } else {
+          const elapsedWeekly = now - firstDaily;
+          if (elapsedWeekly >= WEEKLY_WAIT) {
+            weeklyBtn.disabled = false;
+            weeklyBtn.textContent = "Claim Weekly (20,000 coins)";
+            weeklyCountdown.textContent = "";
+          } else {
+            weeklyBtn.disabled = true;
+            const remaining = WEEKLY_WAIT - elapsedWeekly;
+            weeklyBtn.textContent = "Claim Weekly";
+            weeklyCountdown.textContent = "Available in " + formatTime(remaining);
+          }
+        }
+        const monthlyClaimed = getTime(MONTHLY_KEY);
+        if (monthlyClaimed !== 0) {
+          monthlyBtn.disabled = true;
+          monthlyBtn.textContent = "Monthly Already Claimed";
+          monthlyCountdown.textContent = "";
+        } else {
+          const elapsedMonthly = now - firstDaily;
+          if (elapsedMonthly >= MONTHLY_WAIT) {
+            monthlyBtn.disabled = false;
+            monthlyBtn.textContent = "Claim Monthly (80,000 coins)";
+            monthlyCountdown.textContent = "";
+          } else {
+            monthlyBtn.disabled = true;
+            const remaining = MONTHLY_WAIT - elapsedMonthly;
+            monthlyBtn.textContent = "Claim Monthly";
+            monthlyCountdown.textContent = "Available in " + formatTime(remaining);
+          }
+        }
+      }
+    }
+
+    dailyBtn.addEventListener("click", () => {
+      if (!dailyBtn.disabled) { claimDaily(); updateTimeRewards(); }
+    });
+    weeklyBtn.addEventListener("click", () => {
+      if (!weeklyBtn.disabled) { claimWeekly(); updateTimeRewards(); }
+    });
+    monthlyBtn.addEventListener("click", () => {
+      if (!monthlyBtn.disabled) { claimMonthly(); updateTimeRewards(); }
+    });
+
+    setInterval(updateTimeRewards, 1000);
+    updateTimeRewards();
+
+    /***************** DISTANCE REWARDS CODE *****************/
+    // Datos de recompensas basadas en distancia (primer umbral: 10,000)
+    const distanceRewardsData = [
+      { threshold: 10000, reward: 1000 },
+      { threshold: 50000, reward: 2500 },
+      { threshold: 100000, reward: 5000 },
+      { threshold: 250000, reward: 10000 },
+      { threshold: 500000, reward: 15000 },
+      { threshold: 1000000, reward: 25000 },
+      { threshold: 5000000, reward: 50000 },
+      { threshold: 10000000, reward: 100000 }
+    ];
+
+    function getDistanceRewardKey(threshold) {
+      return "Zigzag_Rush_distanceReward_" + threshold;
+    }
+
+    function updateDistanceRewards() {
+      const totalDistance = parseInt(localStorage.getItem("Zigzag_Rush_totalDistance")) || 0;
+      distanceRewardsData.forEach(item => {
+        const btn = document.getElementById("distance-btn-" + item.threshold);
+        const statusDiv = document.getElementById("distance-status-" + item.threshold);
+        const key = getDistanceRewardKey(item.threshold);
+        const claimed = localStorage.getItem(key);
+        if (claimed) {
+          btn.disabled = true;
+          btn.textContent = "Already Claimed";
+          statusDiv.textContent = "Reward claimed.";
+        } else {
+          if (totalDistance >= item.threshold) {
+            btn.disabled = false;
+            btn.textContent = "Claim Reward (" + item.reward.toLocaleString() + " coins)";
+            statusDiv.textContent = "Available! Total Distance: " + totalDistance.toLocaleString();
+          } else {
+            btn.disabled = true;
+            btn.textContent = "Not Available";
+            const remaining = item.threshold - totalDistance;
+            statusDiv.textContent = "Reach " + remaining.toLocaleString() + " more distance to claim.";
+          }
+        }
+      });
+    }
+
+    distanceRewardsData.forEach(item => {
+      const btn = document.getElementById("distance-btn-" + item.threshold);
+      btn.addEventListener("click", () => {
+        const totalDistance = parseInt(localStorage.getItem("Zigzag_Rush_totalDistance")) || 0;
+        const key = getDistanceRewardKey(item.threshold);
+        if (!localStorage.getItem(key) && totalDistance >= item.threshold) {
+          localStorage.setItem(key, "claimed");
+          addCoins(item.reward);
+          updateDistanceRewards();
+        }
+      });
+    });
+
+    setInterval(updateDistanceRewards, 1000);
+    updateDistanceRewards();
+
+    /***************** TAB SWITCHING CODE *****************/
+    const tabTimeBtn = document.getElementById("tab-time");
+    const tabDistanceBtn = document.getElementById("tab-distance");
+    const timeRewardsContainer = document.getElementById("time-rewards");
+    const distanceRewardsContainer = document.getElementById("distance-rewards");
+
+    // Inicialmente, no se muestra ninguna secci車n
+    timeRewardsContainer.style.display = "none";
+    distanceRewardsContainer.style.display = "none";
+
+    tabTimeBtn.addEventListener("click", () => {
+      tabTimeBtn.classList.add("active");
+      tabDistanceBtn.classList.remove("active");
+      timeRewardsContainer.style.display = "block";
+      distanceRewardsContainer.style.display = "none";
+    });
+    tabDistanceBtn.addEventListener("click", () => {
+      tabDistanceBtn.classList.add("active");
+      tabTimeBtn.classList.remove("active");
+      distanceRewardsContainer.style.display = "block";
+      timeRewardsContainer.style.display = "none";
+    });
+  </script>
+</body>
+</html>

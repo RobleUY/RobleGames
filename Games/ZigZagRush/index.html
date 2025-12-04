@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZigZag Rush</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+	* {
+	    user-select: none;
+	    -webkit-user-select: none;
+	    -moz-user-select: none;
+	    -ms-user-select: none;
+	  }
+
+	  /* Sobrescribir para inputs, textarea y select, permitiendo la selección de texto */
+	  input, textarea, select {
+	    user-select: text;
+	    -webkit-user-select: text;
+	    -moz-user-select: text;
+	    -ms-user-select: text;
+	  }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      font-family: sans-serif;
+      user-select: none;
+      overflow: hidden;
+    }
+    #gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #111;
+    }
+    #gameCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    /* Music Toggle Button */
+    #musicToggleButton {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #444;
+      border: none;
+      color: #fff;
+      border-radius: 5px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      z-index: 5;
+    }
+
+    #topHUD {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: #fff;
+      z-index: 3;
+      font-size: 20px;
+    }
+    #distanceDisplay {
+      font-size: 28px;
+    }
+    #highScoreDisplay {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    #timeCounter {
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
+    }
+    #pauseButton {
+      margin-top: 10px;
+      background-color: #444;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    /* Powerup counter */
+    #powerupCountdown {
+      margin-top: 5px;
+      font-size: 16px;
+      color: #FF4444;
+    }
+    #coinHUD {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      color: #FFC600;
+      font-size: 18px;
+      z-index: 3;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      visibility: hidden;
+      z-index: 4;
+    }
+    .overlay.visible {
+      visibility: visible;
+    }
+    .overlay-content {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 20px 30px;
+      border-radius: 10px;
+      color: #fff;
+    }
+    .shopButton {
+      background-color: #00bfbf;
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 20px;
+    }
+    @keyframes heartbeat {
+      0%   { transform: scale(1); }
+      25%  { transform: scale(1.06); }
+      50%  { transform: scale(1); }
+      75%  { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+    .heartbeat {
+      animation: heartbeat 1.3s infinite;
+    }
+    #gameTitle {
+      font-size: 36px;
+      margin-bottom: 5px;
+    }
+    #developerInfo {
+      font-size: 14px;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Botón: Music -->
+    <button id="musicToggleButton">Music: ON</button>
+
+    <!-- HUD Superior -->
+    <div id="topHUD">
+      <div id="distanceDisplay">0</div>
+      <div id="highScoreDisplay">HIGH SCORE: 0</div>
+      <div id="timeCounter">Time: 0s</div>
+      <button id="pauseButton">PAUSE</button>
+      <div id="powerupCountdown"></div>
+    </div>
+
+    <!-- HUD Monedas -->
+    <div id="coinHUD">0</div>
+  </div>
+
+  <!-- Pantalla de Inicio -->
+  <div id="startScreen" class="overlay visible">
+    <div class="overlay-content">
+      <h2 id="gameTitle">ZigZag Rush</h2>
+      <p id="developerInfo">Developed by RobleUY</p>
+      <h1 id="overlayTitleStart" class="heartbeat">TAP TO START</h1>
+      <p id="overlayInfoStart">
+        Coins: <span id="overlayCoinsStart">0</span> | High Score: <span id="overlayHighScoreStart">0</span>
+      </p>
+      <button id="shopButton" class="shopButton">SHOP</button>
+      <button id="rewardsButton" class="shopButton">REWARDS</button>
+    </div>
+  </div>
+
+  <!-- Pantalla de Game Over -->
+  <div id="gameOverScreen" class="overlay">
+    <div class="overlay-content">
+      <h1 id="overlayTitleOver">TAP TO RESTART</h1>
+      <p id="overlayInfoOver">
+        Coins: <span id="overlayCoinsOver">0</span> | High Score: <span id="overlayHighScoreOver">0</span>
+      </p>
+      <button id="shopButtonOver" class="shopButton">SHOP</button>
+      <button id="rewardsButtonOver" class="shopButton">REWARDS</button>
+    </div>
+  </div>
+
+  <script>
+    /********************************************************************
+     * A) SONIDOS Y CANVAS
+     ********************************************************************/
+    const moveSound    = new Audio("move.mp3");
+    const coinSound    = new Audio("coin.mp3");
+    const powerupSound = new Audio("powerup.mp3");
+    const loseSound    = new Audio("perder.mp3");
+    const bgMusic      = new Audio("music.mp3");
+    bgMusic.loop = true;
+
+    function playSound(audio) {
+      const clone = audio.cloneNode();
+      clone.play().catch(() => {});
+    }
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    let W, H;
+    function resizeCanvas() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      W = canvas.width;
+      H = canvas.height;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    /********************************************************************
+     * B) REFERENCIAS A ELEMENTOS DEL DOM
+     ********************************************************************/
+    const startScreen = document.getElementById("startScreen");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+
+    const distanceDisplay = document.getElementById("distanceDisplay");
+    const highScoreDisplay = document.getElementById("highScoreDisplay");
+    const timeCounter = document.getElementById("timeCounter");
+    const coinHUD = document.getElementById("coinHUD");
+
+    const overlayCoinsStart = document.getElementById("overlayCoinsStart");
+    const overlayHighScoreStart = document.getElementById("overlayHighScoreStart");
+    const overlayCoinsOver = document.getElementById("overlayCoinsOver");
+    const overlayHighScoreOver = document.getElementById("overlayHighScoreOver");
+
+    const musicToggleButton = document.getElementById("musicToggleButton");
+    const pauseButton = document.getElementById("pauseButton");
+
+    // Botones de SHOP y REWARDS
+    const shopButton = document.getElementById("shopButton");
+    const rewardsButton = document.getElementById("rewardsButton");
+    const shopButtonOver = document.getElementById("shopButtonOver");
+    const rewardsButtonOver = document.getElementById("rewardsButtonOver");
+
+    /********************************************************************
+     * C) MANEJO DE MÚSICA (ON/OFF)
+     ********************************************************************/
+    let musicEnabled = localStorage.getItem("Zigzag_Rush_musicEnabled");
+    if (musicEnabled === null) {
+      musicEnabled = "true";
+      localStorage.setItem("Zigzag_Rush_musicEnabled", "true");
+    }
+    function updateMusicState() {
+      if (musicEnabled === "true") {
+        musicToggleButton.textContent = "Music: ON";
+        bgMusic.play().catch(() => {});
+      } else {
+        musicToggleButton.textContent = "Music: OFF";
+        bgMusic.pause();
+      }
+    }
+    updateMusicState();
+
+    musicToggleButton.addEventListener("click", () => {
+      musicEnabled = (musicEnabled === "true") ? "false" : "true";
+      localStorage.setItem("Zigzag_Rush_musicEnabled", musicEnabled);
+      updateMusicState();
+    });
+
+    /********************************************************************
+     * D) BOTONES SHOP Y REWARDS
+     ********************************************************************/
+    if (shopButton) {
+      shopButton.addEventListener("click", () => {
+        window.location.href = "shop.html";
+      });
+    }
+    if (shopButtonOver) {
+      shopButtonOver.addEventListener("click", () => {
+        window.location.href = "shop.html";
+      });
+    }
+    if (rewardsButton) {
+      rewardsButton.addEventListener("click", () => {
+        window.location.href = "rewards.html";
+      });
+    }
+    if (rewardsButtonOver) {
+      rewardsButtonOver.addEventListener("click", () => {
+        window.location.href = "rewards.html";
+      });
+    }
+
+    /********************************************************************
+     * E) PAUSE
+     ********************************************************************/
+    let gamePaused = false;
+    let wasMusicPlaying = false;
+    pauseButton.addEventListener("click", () => {
+      if (!gamePaused) {
+        gamePaused = true;
+        if (!bgMusic.paused) {
+          wasMusicPlaying = true;
+          bgMusic.pause();
+        } else {
+          wasMusicPlaying = false;
+        }
+        pauseButton.innerText = "RESUME";
+      } else {
+        gamePaused = false;
+        if (wasMusicPlaying && localStorage.getItem("Zigzag_Rush_musicEnabled") === "true") {
+          bgMusic.play().catch(() => {});
+        }
+        pauseButton.innerText = "PAUSE";
+      }
+    });
+
+    /********************************************************************
+     * F) DATOS DEL JUGADOR (LOCALSTORAGE)
+     ********************************************************************/
+    let highScore = parseInt(localStorage.getItem("Zigzag_Rush_highScore") || "0");
+    let coins = parseInt(localStorage.getItem("Zigzag_Rush_coins") || "0");
+    let totalDistance = parseInt(localStorage.getItem("Zigzag_Rush_totalDistance") || "0");
+
+    // Mostrar en la pantalla de inicio y en el HUD lo que haya en localStorage
+    overlayCoinsStart.textContent = coins;
+    overlayHighScoreStart.textContent = highScore;
+    highScoreDisplay.innerText = "HIGH SCORE: " + highScore;
+    coinHUD.innerText = coins;
+
+    let storedPalette = localStorage.getItem("Zigzag_Rush_paleta");
+    let selectedPalette = { stripes: ["#1E1E1E", "#2A2A2A", "#3C3C3C"], playerColor: "#FFFFFF" };
+    if (storedPalette) {
+      try {
+        let p = JSON.parse(storedPalette);
+        if (p.colors && p.colors.length >= 4) {
+          selectedPalette = {
+            stripes: p.colors.slice(0, 3),
+            playerColor: p.colors[3]
+          };
+        }
+      } catch(e) {}
+    }
+
+    let gameStarted = false;
+    let gameIsOver = false;
+    let distance = 0;
+    const SPEED = 5;
+    let speedMultiplier = 1;
+    let gameStartTime = 0;
+    let basePowerupDuration = 300;
+    let powerupTimer = 0;
+    let coinMargin = 10;
+
+    let magnetLevel = parseInt(localStorage.getItem("Zigzag_Rush_magnet") || "1");
+    let powerupLevel = parseInt(localStorage.getItem("Zigzag_Rush_powerup") || "5");
+
+    let player = {
+      wx: 0,
+      wy: 0,
+      vx: (Math.random() < 0.5 ? -SPEED : SPEED),
+      vy: -SPEED,
+      size: 30,
+      color: selectedPalette.playerColor,
+      invincible: false
+    };
+
+    let zigzagPath = [];
+    let cameraOffset = 0;
+    let objects = [];
+    let spawnTimer = 0;
+    let spawnInterval = 60;
+    let particles = [];
+    const POWERUP_INTERVAL = 30000;
+    let lastPowerupTime = 0;
+    let safeModeTimer = 0;
+    let postPowerup = false;
+
+    let touchEffects = [];
+
+    /********************************************************************
+     * G) EFECTO TÁCTIL Y FONDO INICIAL
+     ********************************************************************/
+    function createTouchEffect(x, y) {
+      touchEffects.push({
+        x: x,
+        y: y,
+        radius: 0,
+        maxRadius: 50,
+        opacity: 1
+      });
+    }
+    function updateTouchEffects() {
+      for (let i = touchEffects.length - 1; i >= 0; i--) {
+        let effect = touchEffects[i];
+        effect.radius += 2;
+        effect.opacity -= 0.03;
+        if (effect.opacity <= 0) {
+          touchEffects.splice(i, 1);
+        }
+      }
+    }
+    function drawTouchEffects() {
+      for (let effect of touchEffects) {
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${effect.opacity})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+    function drawIdleBackground() {
+      ctx.clearRect(0, 0, W, H);
+      drawVerticalStripes(selectedPalette.stripes);
+      const centerX = W / 2;
+      const centerY = H / 2;
+      ctx.fillStyle = selectedPalette.playerColor;
+      ctx.fillRect(centerX - 10, centerY - 10, 20, 20);
+    }
+    drawIdleBackground();
+
+    /********************************************************************
+     * H) PANTALLA DE INICIO / GAME OVER
+     ********************************************************************/
+    startScreen.addEventListener("click", (e) => {
+      if (e.target.classList.contains("shopButton")) return;
+      startGame();
+    });
+    gameOverScreen.addEventListener("click", (e) => {
+      if (gameIsOver && !e.target.classList.contains("shopButton")) {
+        restartGame();
+      }
+    });
+    canvas.addEventListener("click", (e) => {
+      let rect = canvas.getBoundingClientRect();
+      let x = e.clientX - rect.left;
+      let y = e.clientY - rect.top;
+      createTouchEffect(x, y);
+      
+      if (gameStarted && !gameIsOver) {
+        if (postPowerup) {
+          player.vx = (Math.random() < 0.5) ? -SPEED : SPEED;
+          zigzagPath.push({ x: player.wx, y: player.wy });
+          postPowerup = false;
+        } else {
+          if (!player.invincible || powerupTimer <= 0) {
+            playSound(moveSound);
+            player.vx = -player.vx;
+            zigzagPath.push({ x: player.wx, y: player.wy });
+          }
+        }
+      }
+    });
+
+    /********************************************************************
+     * I) INICIO DE JUEGO / BUCLE PRINCIPAL
+     ********************************************************************/
+    function startGame() {
+      gameStarted = true;
+      startScreen.classList.remove("visible");
+      if (musicEnabled === "true") {
+        bgMusic.play().catch(() => {});
+      }
+      distance = 0;
+      objects = [];
+      spawnTimer = 0;
+      gameIsOver = false;
+      player.invincible = false;
+      speedMultiplier = 1;
+      powerupTimer = 0;
+      particles = [];
+      player.wx = W / 2;
+      player.wy = 0;
+      player.vy = -SPEED;
+      player.color = selectedPalette.playerColor;
+      zigzagPath = [];
+      zigzagPath.push({ x: player.wx, y: player.wy + 300 });
+      timeCounter.style.display = "block";
+      gameStartTime = Date.now();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function restartGame() {
+      gameOverScreen.classList.remove("visible");
+      startGame();
+    }
+
+    function gameLoop() {
+      if (!gameIsOver) {
+        requestAnimationFrame(gameLoop);
+      }
+      if (gamePaused) return;
+      update();
+      draw();
+    }
+
+    function update() {
+      let elapsedTime = Math.floor((Date.now() - gameStartTime) / 1000);
+      timeCounter.innerText = "Time: " + elapsedTime + "s";
+      spawnInterval = Math.max(30, 60 - Math.floor(elapsedTime / 10) * 5);
+      let difficultyMultiplier = 1 + (elapsedTime / 60) * 0.2;
+      player.wx += player.vx * speedMultiplier * difficultyMultiplier;
+      player.wy += player.vy * speedMultiplier * difficultyMultiplier;
+      distance = Math.floor(-player.wy);
+      cameraOffset = player.wy - (H * 0.8);
+
+      // Bordes
+      if (!player.invincible) {
+        if (player.wx < player.size / 2 || player.wx > W - player.size / 2) {
+          endGame();
+          return;
+        }
+      }
+
+      // Spawn
+      spawnTimer++;
+      if (spawnTimer >= spawnInterval) {
+        spawnTimer = 0;
+        spawnObject();
+      }
+
+      // Safe mode
+      if (safeModeTimer > 0) {
+        safeModeTimer--;
+      }
+
+      // Colisiones
+      let effectiveCoinMargin = coinMargin + (magnetLevel - 1) * 5;
+      for (let i = objects.length - 1; i >= 0; i--) {
+        let obj = objects[i];
+        let dx = player.wx - obj.wx;
+        let dy = player.wy - obj.wy;
+        let distCheck = Math.sqrt(dx * dx + dy * dy);
+        let collisionDist = (player.size / 2) + obj.size;
+
+        if (obj.type === "coin") {
+          if (distCheck < collisionDist + effectiveCoinMargin) {
+            coins += 100;
+            localStorage.setItem("Zigzag_Rush_coins", coins);
+            playSound(coinSound);
+            spawnParticles(obj.wx, obj.wy, "#FFC600", 10);
+            objects.splice(i, 1);
+            continue;
+          }
+        } else if (distCheck < collisionDist) {
+          if (obj.type === "powerup") {
+            activatePowerup();
+            objects.splice(i, 1);
+            continue;
+          } else if (obj.type === "obstacle") {
+            if (!player.invincible) {
+              endGame();
+              return;
+            } else {
+              spawnParticles(obj.wx, obj.wy, "#FFFFFF", 15);
+              objects.splice(i, 1);
+              continue;
+            }
+          }
+        }
+        let screenY = obj.wy - cameraOffset;
+        if (screenY > H + 50) {
+          objects.splice(i, 1);
+        }
+      }
+
+      // Animaciones
+      for (let obj of objects) {
+        if (obj.type === "obstacle" && typeof obj.rotation !== "undefined") {
+          obj.rotation += obj.rotationSpeed;
+        }
+        if (obj.type === "powerup" && typeof obj.pulsePhase !== "undefined") {
+          obj.pulsePhase += obj.pulseSpeed;
+        }
+      }
+
+      // Powerup
+      if (player.invincible && powerupTimer > 0) {
+        powerupTimer--;
+        if (powerupTimer <= 0) {
+          player.invincible = false;
+          speedMultiplier = 1;
+          player.wy += 100;
+          postPowerup = true;
+          safeModeTimer = 180;
+        }
+      }
+
+      // Countdown
+      const powerupCountdownDisplay = document.getElementById("powerupCountdown");
+      if (player.invincible && powerupTimer > 0) {
+        let secondsLeft = Math.ceil(powerupTimer / 60);
+        powerupCountdownDisplay.innerText = "POWERUP: " + secondsLeft + " s";
+      } else {
+        powerupCountdownDisplay.innerText = "";
+      }
+
+      updateParticles();
+      updateTouchEffects();
+
+      distanceDisplay.innerText = distance;
+      if (distance > highScore) {
+        highScore = distance;
+        localStorage.setItem("Zigzag_Rush_highScore", highScore);
+      }
+      highScoreDisplay.innerText = "HIGH SCORE: " + highScore;
+      coinHUD.innerText = coins;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      drawVerticalStripes(selectedPalette.stripes);
+
+      for (let obj of objects) {
+        let xScreen = obj.wx;
+        let yScreen = obj.wy - cameraOffset;
+        if (obj.type === "coin") {
+          ctx.fillStyle = "#FFC600";
+          ctx.beginPath();
+          ctx.arc(xScreen, yScreen, obj.size, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (obj.type === "powerup") {
+          let pulseFactor = 1 + 0.1 * Math.sin(obj.pulsePhase);
+          let pulsatingSize = obj.size * pulseFactor;
+          ctx.save();
+          ctx.shadowColor = "#FF4444";
+          ctx.shadowBlur = 15;
+          ctx.fillStyle = "#FF4444";
+          ctx.beginPath();
+          ctx.arc(xScreen, yScreen, pulsatingSize, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        } else if (obj.type === "obstacle") {
+          ctx.save();
+          ctx.translate(xScreen, yScreen);
+          ctx.rotate(obj.rotation);
+          ctx.shadowColor = "#FFFFFF";
+          ctx.shadowBlur = 15;
+          ctx.fillStyle = "#FFFFFF";
+          drawHexagon(0, 0, obj.size);
+          ctx.restore();
+        }
+      }
+      drawZigzagTail();
+      drawPlayer();
+      drawParticles();
+      drawTouchEffects();
+    }
+
+    function endGame() {
+      gameIsOver = true;
+      bgMusic.pause();
+      playSound(loseSound);
+      localStorage.setItem("Zigzag_Rush_coins", coins);
+      totalDistance += distance;
+      localStorage.setItem("Zigzag_Rush_totalDistance", totalDistance);
+
+      spawnParticles(player.wx, player.wy, player.color, 20);
+      overlayCoinsOver.textContent = coins;
+      overlayHighScoreOver.textContent = highScore;
+      gameOverScreen.classList.add("visible");
+      timeCounter.style.display = "none";
+    }
+
+    function activatePowerup() {
+      playSound(powerupSound);
+      spawnParticles(player.wx, player.wy, "#FF4444", 15);
+      player.invincible = true;
+      // Si powerupLevel es 5 (valor base), el tiempo será 300; si se mejora, se incrementa proporcionalmente.
+      powerupTimer = basePowerupDuration * (powerupLevel / 5);
+      player.wx = W / 2;
+      player.vx = 0;
+      speedMultiplier = 3;
+
+      let totalCoins = powerupLevel * 2;
+      let coinsSpawned = 0;
+      let coinSpawnInterval = 500;
+      let coinSpawner = setInterval(() => {
+        if (coinsSpawned < totalCoins) {
+          objects.push({
+            wx: W / 2,
+            wy: player.wy - coinsSpawned * 30,
+            size: 8,
+            type: "coin"
+          });
+          coinsSpawned++;
+        } else {
+          clearInterval(coinSpawner);
+        }
+      }, coinSpawnInterval);
+    }
+
+    function spawnObstaclePattern() {
+      const numObstacles = 5;
+      const gapIndex = Math.floor(Math.random() * numObstacles);
+      const separation = 40;
+      const patternWidth = (numObstacles - 1) * separation;
+      let startX = Math.random() * (W - patternWidth - 40) + 20;
+      let spawnY = cameraOffset - 50;
+      for (let i = 0; i < numObstacles; i++) {
+        if (i === gapIndex) continue;
+        objects.push({
+          wx: startX + i * separation,
+          wy: spawnY,
+          size: 15,
+          type: "obstacle",
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 0.1
+        });
+      }
+    }
+
+    function spawnObject() {
+      let spawnY = cameraOffset - 50;
+      let spawnX = Math.random() * (W - 40) + 20;
+      let r = Math.random();
+      if (safeModeTimer > 0) {
+        if (r < 0.8) {
+          objects.push({ wx: spawnX, wy: spawnY, size: 8, type: "coin" });
+        } else if (r < 0.9) {
+          objects.push({ wx: spawnX, wy: spawnY, size: 8, type: "coin" });
+        } else {
+          let now = Date.now();
+          if (now - lastPowerupTime >= POWERUP_INTERVAL) {
+            objects.push({
+              wx: spawnX,
+              wy: spawnY,
+              size: 10,
+              type: "powerup",
+              pulsePhase: Math.random() * 2 * Math.PI,
+              pulseSpeed: 0.05
+            });
+            lastPowerupTime = now;
+          } else {
+            objects.push({ wx: spawnX, wy: spawnY, size: 8, type: "coin" });
+          }
+        }
+      } else {
+        if (r < 0.5) {
+          objects.push({ wx: spawnX, wy: spawnY, size: 8, type: "coin" });
+        } else if (r < 0.8) {
+          objects.push({
+            wx: spawnX,
+            wy: spawnY,
+            size: 15,
+            type: "obstacle",
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: (Math.random() - 0.5) * 0.1
+          });
+        } else if (r < 0.9) {
+          spawnObstaclePattern();
+        } else {
+          let now = Date.now();
+          if (now - lastPowerupTime >= POWERUP_INTERVAL) {
+            objects.push({
+              wx: spawnX,
+              wy: spawnY,
+              size: 10,
+              type: "powerup",
+              pulsePhase: Math.random() * 2 * Math.PI,
+              pulseSpeed: 0.05
+            });
+            lastPowerupTime = now;
+          } else {
+            objects.push({ wx: spawnX, wy: spawnY, size: 8, type: "coin" });
+          }
+        }
+      }
+    }
+
+    function drawZigzagTail() {
+      if (zigzagPath.length === 0) return;
+      ctx.save();
+      ctx.lineWidth = 20;
+      ctx.lineCap = "round";
+      ctx.shadowColor = player.color;
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      let firstCorner = zigzagPath[0];
+      ctx.moveTo(firstCorner.x, firstCorner.y - cameraOffset);
+      for (let i = 1; i < zigzagPath.length; i++) {
+        let c = zigzagPath[i];
+        ctx.lineTo(c.x, c.y - cameraOffset);
+      }
+      ctx.lineTo(player.wx, player.wy - cameraOffset);
+      ctx.strokeStyle = player.color;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPlayer() {
+      let xScreen = player.wx;
+      let yScreen = player.wy - cameraOffset;
+      ctx.save();
+      ctx.shadowColor = player.color;
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = player.color;
+      ctx.fillRect(xScreen - player.size / 2, yScreen - player.size / 2, player.size, player.size);
+      ctx.restore();
+    }
+
+    function drawHexagon(cx, cy, size) {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        let angle = (Math.PI / 3) * i;
+        let x = cx + size * Math.cos(angle);
+        let y = cy + size * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawVerticalStripes(stripes) {
+      let stripeWidth = W / stripes.length;
+      for (let i = 0; i < stripes.length; i++) {
+        ctx.fillStyle = stripes[i];
+        ctx.fillRect(i *stripeWidth, 0, stripeWidth, H);
+}
+}
+function spawnParticles(x, y, color, amount = 10) {
+  for (let i = 0; i < amount; i++) {
+    let angle = Math.random() * 2 * Math.PI;
+    let speed = Math.random() * 2 + 1;
+    particles.push({
+      x: x,
+      y: y,
+      vx: speed * Math.cos(angle),
+      vy: speed * Math.sin(angle),
+      color: color,
+      life: 30 + Math.random() * 20
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    let p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    if (p.life <= 0) {
+      particles.splice(i, 1);
+    }
+  }
+}
+
+function drawParticles() {
+  for (let p of particles) {
+    let sx = p.x;
+    let sy = p.y - cameraOffset;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+  </script>
+</body>
+</html>

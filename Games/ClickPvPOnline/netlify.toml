@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/api/*"
+  to = "http://olivia.hidencloud.com:24733/:splat"
+  status = 200
+  force = true
