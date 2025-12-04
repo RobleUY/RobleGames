@@ -487,7 +487,8 @@
     const localVersion = 'clickpvponline1.0.1';
 
     // Consultamos la versión del servidor
-    fetch('http://olivia.hidencloud.com:24733/version')
+    fetch('/api/version')
+
       .then(response => response.json())
       .then(data => {
         if (data.version !== localVersion) {
