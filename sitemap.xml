@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://roblegames.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Juegos -->
+  <url><loc>https://roblegames.com/Games/60secondsinthecircle/</loc></url>
+  <url><loc>https://roblegames.com/Games/BigBet/</loc></url>
+  <url><loc>https://roblegames.com/Games/ClickPvPOnline/</loc></url>
+  <url><loc>https://roblegames.com/Games/CosmicClicker/</loc></url>
+  <url><loc>https://roblegames.com/Games/FoodStandEmpire/</loc></url>
+  <url><loc>https://roblegames.com/Games/RobAsteroid/</loc></url>
+  <url><loc>https://roblegames.com/Games/RobleBussines/</loc></url>
+  <url><loc>https://roblegames.com/Games/SpaceshipsvsStars/</loc></url>
+  <url><loc>https://roblegames.com/Games/ZigZagRush/</loc></url>
+
+</urlset>
