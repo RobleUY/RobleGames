@@ -486,10 +486,9 @@
   <script>
     const localVersion = 'clickpvponline1.0.1';
 
-    if (!navigator.onLine) {
-      window.location.href = 'error_internet.html';
-    }
-    fetch(`${baseUrl}/version`)
+    // Consultamos la versión del servidor
+    fetch('/api/version')
+
       .then(response => response.json())
       .then(data => {
         if (data.version !== localVersion) {
@@ -497,9 +496,7 @@
           window.location.href = 'actualizar.html';
         }
       })
-      .catch(error => {
-        showNotification('Connection error.');
-      });
+      .catch(error => console.error('Error verificando versión:', error));
 	  
     const baseMoveSound = new Audio('assets/move.mp3');
     baseMoveSound.load();
@@ -551,13 +548,7 @@
     });
     
     // Dirección base del servidor
-    const baseUrl = './api';
-    window.addEventListener('offline', function() {
-      window.location.href = 'error_internet.html';
-    });
-    window.addEventListener('unhandledrejection', function(event) {
-      showNotification('Connection error.');
-    });
+    const baseUrl = '/api';
     
     // Variables globales
     let roomCodeGlobal = "";
