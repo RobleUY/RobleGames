@@ -1,90 +1,116 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Loading Screen</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ingresar al juego</title>
+
   <style>
-    /* Full screen styling and centered content */
-    html, body {
-      height: 100%;
+    * {
       margin: 0;
-      background-color: #1a1a1a;
-      color: #ffffff;
-      font-family: Arial, sans-serif;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      background: radial-gradient(circle at center, #1a1a2e, #0a0a16);
+      font-family: Arial, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    /* Animación de partículas */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .particles span {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 50%;
+      animation: float 6s linear infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(100vh) scale(1); opacity: 1; }
+      100% { transform: translateY(-10vh) scale(0.2); opacity: 0; }
+    }
+
+    /* Contenedor principal */
+    .container {
       text-align: center;
-      cursor: pointer;
+      z-index: 2;
+      padding: 20px;
+      animation: fadeIn 1.7s ease-out;
     }
-    
-    .loading-container {
-      animation: fadeIn 2s ease-in;
-    }
-    
+
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from { opacity: 0; transform: translateY(20px);}
+      to   { opacity: 1; transform: translateY(0);}
     }
-    
+
     h1 {
-      font-size: 4vw;
-      margin-bottom: 2vh;
-    }
-    
-    h2 {
-      font-size: 2.5vw;
-      margin-bottom: 2vh;
-    }
-    
-    p {
-      font-size: 2vw;
-      margin-top: 2vh;
-      margin-bottom: 2vh;
+      font-size: 2.4rem;
+      font-weight: bold;
+      text-shadow: 0 0 15px rgba(0,128,255,0.7);
+      margin-bottom: 25px;
     }
 
-    /* Image styling with pulse effect */
-    .icon-image {
-      width: 15vw;
-      max-width: 150px;
-      height: auto;
-      opacity: 0.8;
-      margin-top: 2vh;
-      animation: pulse 1.5s infinite ease-in-out;
+    .btn {
+      padding: 15px 35px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(45deg, #007bff, #00a8ff);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0,128,255,0.6);
+      transition: 0.25s;
     }
 
-    /* Pulse effect */
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.1);
-      }
-      100% {
-        transform: scale(1);
-      }
+    .btn:hover {
+      transform: scale(1.07);
+      box-shadow: 0 0 25px rgba(0,128,255,0.9);
     }
-
   </style>
 </head>
-<body>
-  <div class="loading-container">
-    <h1>Click PvP Online</h1>
-    <h2>Game Developed by RobleUY</h2>
-    <p>Press anywhere to start</p>
-    <img src="icon.png" alt="Game Icon" class="icon-image">
-  </div>
-  
-  <script>
-    function startGame() {
-      window.location.href = "jugar.html";
-    }
 
-    // Agregar eventos para PC y móviles
-    document.body.addEventListener("click", startGame);
-    document.body.addEventListener("touchstart", startGame);
+<body>
+
+  <!-- Efecto de partículas -->
+  <div class="particles">
+    <span style="left: 10%; animation-delay: 0s; animation-duration: 4s;"></span>
+    <span style="left: 30%; animation-delay: 1s; animation-duration: 5s;"></span>
+    <span style="left: 50%; animation-delay: 2s; animation-duration: 6s;"></span>
+    <span style="left: 70%; animation-delay: 0.5s; animation-duration: 5.5s;"></span>
+    <span style="left: 90%; animation-delay: 1.5s; animation-duration: 7s;"></span>
+    <span style="left: 20%; animation-delay: 2.5s; animation-duration: 6.5s;"></span>
+    <span style="left: 80%; animation-delay: 0.2s; animation-duration: 4.5s;"></span>
+  </div>
+
+  <!-- Contenido -->
+  <div class="container">
+    <h1>ClickPvPOnline</h1>
+    <button class="btn" onclick="ingresar()">Ingresar al juego</button>
+  </div>
+
+  <script>
+    function ingresar() {
+      window.open("https://clickpvponline.netlify.app/", "_blank");
+    }
   </script>
+
 </body>
 </html>
