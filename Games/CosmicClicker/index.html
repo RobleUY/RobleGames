@@ -1,79 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cosmic Clicker</title>
-    <meta name="description" content="A fun cosmic idle game experience" />
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      /* Estilos para la pantalla de carga */
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background-color: #0f0f23;
-        color: #db7c00;
-        font-family: sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      #splash-container {
-        text-align: center;
-      }
-      #splash-container header h1 {
-        font-size: 3rem;
-        margin-bottom: 10px;
-      }
-      #splash-container header p {
-        font-size: 1.2rem;
-        margin-bottom: 20px;
-      }
-      .loading-bar {
-        width: 300px;
-        height: 20px;
-        background: #333;
-        border-radius: 10px;
-        overflow: hidden;
-        margin: 0 auto;
-      }
-      .loading-progress {
-        height: 100%;
-        width: 0;
-        background-color: #ffb400;
-        border-radius: 10px;
-        animation: fillBar 1s linear forwards;
-      }
-      @keyframes fillBar {
-        to {
-          width: 100%;
-        }
-      }
-    </style>
+    <meta name="description" content="Un divertido juego idle cósmico" />
+    <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   </head>
   <body>
-    <div id="splash-container">
+    <div id="game-container">
       <header>
-        <h1>
-          <i class="fas fa-meteor"></i> Cosmic Clicker <i class="fas fa-meteor"></i>
-        </h1>
-        <p>Iniciando...</p>
+        <h1><i class="fas fa-meteor"></i> Cosmic Clicker <i class="fas fa-meteor"></i></h1>
+        <p class="subtitle">Construye tu imperio cósmico</p>
       </header>
-      <div class="loading-bar">
-        <div class="loading-progress"></div>
+      <main>
+        <div class="resources-panel">
+          <div class="resource">
+            <i class="fas fa-star"></i>
+            <span id="stardust-count">0</span>
+            <span class="resource-name">Polvo estelar</span>
+          </div>
+          <div class="resource">
+            <i class="fas fa-gem"></i>
+            <span id="crystals-count">0</span>
+            <span class="resource-name">Cristales</span>
+          </div>
+          <div class="resource">
+            <i class="fas fa-rocket"></i>
+            <span id="rockets-count">0</span>
+            <span class="resource-name">Cohetes</span>
+          </div>
+        </div>
+
+        <div class="game-area">
+          <div class="game-screen">
+            <div id="clicker-area">
+              <div id="planet" class="planet">
+                <i class="fas fa-globe-americas"></i>
+              </div>
+            </div>
+            <div id="messages" class="messages"></div>
+          </div>
+          
+          <div class="buildings-panel">
+            <h2><i class="fas fa-building"></i> Edificios</h2>
+            <div class="buildings-container">
+              
+              <!-- Stardust Collector -->
+              <div class="building" id="stardust-collector">
+                <i class="fas fa-hand-sparkles"></i>
+                <div class="building-info">
+                  <h3>Recolector de Polvo Estelar</h3>
+                  <p>Genera <span id="stardust-rate">1</span> polvo estelar por segundo</p>
+                  <p>Costo: <span id="stardust-collector-cost">10</span> polvo estelar</p>
+                  <p>Comprados: <span id="stardust-collector-count">0</span></p>
+                </div>
+                <button class="buy-btn" id="buy-stardust-collector">Comprar</button>
+              </div>
+              
+              <!-- Crystal Miner -->
+              <div class="building" id="crystal-miner">
+                <i class="fas fa-gem"></i>
+                <div class="building-info">
+                  <h3>Minero de Cristales</h3>
+                  <p>Convierte polvo estelar en cristales</p>
+                  <p>Costo: <span id="crystal-miner-cost">50</span> polvo estelar</p>
+                  <p>Comprados: <span id="crystal-miner-count">0</span></p>
+                </div>
+                <button class="buy-btn" id="buy-crystal-miner">Comprar</button>
+              </div>
+              
+              <!-- Rocket Factory -->
+              <div class="building" id="rocket-factory">
+                <i class="fas fa-industry"></i>
+                <div class="building-info">
+                  <h3>Fábrica de Cohetes</h3>
+                  <p>Construye cohetes usando cristales</p>
+                  <p>Costo: <span id="rocket-factory-cost">25</span> cristales</p>
+                  <p>Comprados: <span id="rocket-factory-count">0</span></p>
+                </div>
+                <button class="buy-btn" id="buy-rocket-factory">Comprar</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="controls">
+            <button id="reset-button"><i class="fas fa-redo"></i> Reiniciar Juego</button>
+          </div>
+        </div>
+      </main>
+
+      <p class="subtitle">@RobleUY - RobleGames</p>
+    </div>
+    
+    <!-- Modal de notificaciones -->
+    <div id="notification-modal" class="modal">
+      <div class="modal-content">
+        <h2 id="modal-title"><i class="fas fa-info-circle"></i> Notificación</h2>
+        <p id="modal-message">Este es un mensaje de notificación.</p>
+        <div class="modal-buttons">
+          <button id="modal-confirm" class="modal-btn confirm-btn">Sí</button>
+          <button id="modal-cancel" class="modal-btn cancel-btn">Cancelar</button>
+        </div>
       </div>
     </div>
-    <script>
-      // Redirige a juego.html cuando la barra se llena (2 segundos)
-      setTimeout(function () {
-        window.location.href = "juego.html";
-      }, 2000);
-    </script>
+    
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>
+    
+    <script src="index.js"></script>
   </body>
 </html>
