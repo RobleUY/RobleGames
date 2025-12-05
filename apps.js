@@ -10,6 +10,16 @@ const games = [
   },
   
   {
+    name: "Betting Duel",
+    icon: "Games/BettingDuel/icon.jpg",
+    url: "Games/BettingDuel/index.html",
+    platform: ["pc", "mobile"],
+    category: "Multijugador",
+    short: "Reta a otros jugadores a un duelo de apuestas, quien gane más gana.",
+    tags: "apuestas,multijugador,online"
+  },
+  
+  {
     name: "Click PvP Online",
     icon: "Games/ClickPvPOnline/icon.png",
     url: "Games/ClickPvPOnline/index.html",
