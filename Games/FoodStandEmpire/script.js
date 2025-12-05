@@ -350,7 +350,7 @@ const translations = {
 };
 
 // Configuración actual del idioma
-let currentLanguage = localStorage.getItem(STORAGE_KEYS.LANGUAGE) || 'en';
+let currentLanguage = localStorage.getItem(STORAGE_KEYS.LANGUAGE) || 'es';
 
 // Función para traducir texto
 function t(key) {

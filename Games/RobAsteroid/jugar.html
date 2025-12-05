@@ -111,14 +111,14 @@
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
-    <button id="reiniciar">RESTART</button>
-    <button id="PLAY">PLAY</button>
-    <div id="puntaje">Points: 0</div>
-    <div id="record">Best Score: 0</div>
+    <button id="reiniciar">REINICIAR</button>
+    <button id="PLAY">JUGAR</button>
+    <div id="puntaje">Puntos: 0</div>
+    <div id="record">Mejor puntuacion: 0</div>
     <button id="Pause"><img src="pause.png" alt="Pauser"></button>
 
     <div id="misiles-container"></div>
-    <div id="recarga-texto">Reloading Ammunition...</div>
+    <div id="recarga-texto">Recargando municion...</div>
 
     <!-- Botones para mover la nave -->
     <button id="izquierda"></button>
@@ -200,7 +200,7 @@
         if (!record) {
             record = 0;
         }
-        recordDiv.textContent = `Best Score: ${record}`;
+        recordDiv.textContent = `Mejor puntuacion: ${record}`;
 
         function actualizarIconosMisiles() {
             misilesContainer.innerHTML = '';
