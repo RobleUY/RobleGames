@@ -12,6 +12,16 @@ const games = [
   },
   
   {
+    name: "Piedra Papel O Tijeras",
+    icon: "Games/PiedraPapelOTijeras/icon.jpg",
+    url: "Games/PiedraPapelOTijeras/index.html",
+    platform: ["pc", "mobile"],
+    category: "Multijugador",
+    short: "Reta a otros jugadores a un duelo de Piedra Papel O Tijeras.",
+    tags: "multijugador,online"
+  },
+  
+  {
     name: "Betting Duel",
     icon: "Games/BettingDuel/icon.jpg",
     url: "Games/BettingDuel/index.html",

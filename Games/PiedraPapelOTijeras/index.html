@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ingresar al juego</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #1a1a2e, #0a0a16);
+      font-family: Arial, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    /* Animación de partículas */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .particles span {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 50%;
+      animation: float 6s linear infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(100vh) scale(1); opacity: 1; }
+      100% { transform: translateY(-10vh) scale(0.2); opacity: 0; }
+    }
+
+    /* Contenedor principal */
+    .container {
+      text-align: center;
+      z-index: 2;
+      padding: 20px;
+      animation: fadeIn 1.7s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px);}
+      to   { opacity: 1; transform: translateY(0);}
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: bold;
+      text-shadow: 0 0 15px rgba(0,128,255,0.7);
+      margin-bottom: 25px;
+    }
+
+    .btn {
+      padding: 15px 35px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(45deg, #007bff, #00a8ff);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0,128,255,0.6);
+      transition: 0.25s;
+    }
+
+    .btn:hover {
+      transform: scale(1.07);
+      box-shadow: 0 0 25px rgba(0,128,255,0.9);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Efecto de partículas -->
+  <div class="particles">
+    <span style="left: 10%; animation-delay: 0s; animation-duration: 4s;"></span>
+    <span style="left: 30%; animation-delay: 1s; animation-duration: 5s;"></span>
+    <span style="left: 50%; animation-delay: 2s; animation-duration: 6s;"></span>
+    <span style="left: 70%; animation-delay: 0.5s; animation-duration: 5.5s;"></span>
+    <span style="left: 90%; animation-delay: 1.5s; animation-duration: 7s;"></span>
+    <span style="left: 20%; animation-delay: 2.5s; animation-duration: 6.5s;"></span>
+    <span style="left: 80%; animation-delay: 0.2s; animation-duration: 4.5s;"></span>
+  </div>
+
+  <!-- Contenido -->
+  <div class="container">
+    <h1>Piedra Papel O Tijeras</h1>
+    <button class="btn" onclick="ingresar()">Ingresar al juego</button>
+  </div>
+
+  <script>
+    function ingresar() {
+      window.open("robleuypiedrapapelotijeras.netlify.app", "_blank");
+    }
+  </script>
+
+</body>
+</html>
